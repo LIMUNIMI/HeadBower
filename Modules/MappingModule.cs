@@ -1,0 +1,322 @@
+﻿using System.Windows.Controls;
+using HeadBower.Surface;
+using NITHdmis.Music;
+
+namespace HeadBower.Modules
+{
+    /// <summary>
+    /// DMIBox for Netytar, implementing the internal logic of the instrument.
+    /// </summary>
+    public class MappingModule
+    {
+        private const _BreathControlModes DEFAULT_BREATHCONTROLMODE = _BreathControlModes.Dynamic;
+        private const int MIN_VALUES_THRESHOLD = 1;
+        private bool hasAButtonGaze = false;
+
+        private Button lastGazedButton = new Button();
+
+        private string testString;
+
+        public MappingModule()
+        {
+            StartingScale = ScalesFactory.Cmaj;
+            LastScale = StartingScale;
+            SelectedScale = StartingScale;
+        }
+
+        public bool CursorHidden { get; set; } = false;
+        public bool HasAButtonGaze { get => hasAButtonGaze; set => hasAButtonGaze = value; }
+        public Button LastGazedButton { get => lastGazedButton; set => lastGazedButton = value; }
+
+        public string TestString { get => testString; set => testString = value; }
+        private Scale LastScale { get; set; }
+        private Scale SelectedScale { get; set; }
+        private Scale StartingScale { get; set; }
+
+        #region Switchable
+
+        private _BreathControlModes breathControlMode = DEFAULT_BREATHCONTROLMODE;
+
+        public _BreathControlModes BreathControlMode
+        { get => breathControlMode; set { breathControlMode = value; ResetModulationAndPressure(); } }
+
+        #endregion Switchable
+
+        #region Instrument logic
+
+        public double BowPosition { get; set; } = 0; // Posizione dell'arco (da -1 a 1)
+        public double PitchBendValue { get; set; } = 0; // Valore del pitch bend (da -1 a 1)
+        public double HeadPitchPosition { get; set; } = 0; // Posizione raw del pitch
+        public double PitchBendThreshold { get; set; } = 10.0; // Soglia per il pitch bend
+        public bool IsPlayingViolin { get; set; } = false; // Se stiamo usando il violino
+        public Button CurrentButton { get; set; } = null; // Pulsante attualmente selezionato
+
+
+        private bool blow = false;
+        private int modulation = 0;
+        private MidiNotes nextNote = MidiNotes.C5;
+        private int pressure = 127;
+        private MidiNotes selectedNote = MidiNotes.C5;
+        private int velocity = 127;
+
+        public bool Blow
+        {
+            get { return blow; }
+            set
+            {
+                switch (Rack.UserSettings.SlidePlayMode)
+                {
+                    case _SlidePlayModes.On:
+                        if (value != blow)
+                        {
+                            blow = value;
+                            if (blow == true)
+                            {
+                                PlaySelectedNote();
+                            }
+                            else
+                            {
+                                StopSelectedNote();
+                            }
+                        }
+                        break;
+
+                    case _SlidePlayModes.Off:
+                        if (value != blow)
+                        {
+                            blow = value;
+                            if (blow == true)
+                            {
+                                selectedNote = nextNote;
+                                PlaySelectedNote();
+                            }
+                            else
+                            {
+                                StopSelectedNote();
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+
+        public int Modulation
+        {
+            get { return modulation; }
+            set
+            {
+                if (Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On)
+                {
+                    if (value < MIN_VALUES_THRESHOLD && value > 1)
+                    {
+                        modulation = MIN_VALUES_THRESHOLD;
+                    }
+                    else if (value > 127)
+                    {
+                        modulation = 127;
+                    }
+                    else if (value == 0)
+                    {
+                        modulation = 0;
+                    }
+                    else
+                    {
+                        modulation = value;
+                    }
+                    SetModulation();
+                }
+                else if (Rack.UserSettings.ModulationControlMode == _ModulationControlModes.Off)
+                {
+                    modulation = 0;
+                    SetModulation();
+                }
+            }
+        }
+
+        public int Pressure
+        {
+            get { return pressure; }
+            set
+            {
+                if (BreathControlMode == _BreathControlModes.Dynamic)
+                {
+                    if (value < MIN_VALUES_THRESHOLD && value > 1)
+                    {
+                        pressure = MIN_VALUES_THRESHOLD;
+                    }
+                    else if (value > 127)
+                    {
+                        pressure = 127;
+                    }
+                    else if (value == 0)
+                    {
+                        pressure = 0;
+                    }
+                    else
+                    {
+                        pressure = value;
+                    }
+                    SetPressure();
+                }
+                if (BreathControlMode == _BreathControlModes.Switch)
+                {
+                    pressure = 127;
+                    SetPressure();
+                }
+            }
+        }
+
+        public MidiNotes SelectedNote
+        {
+            get { return selectedNote; }
+            set
+            {
+                switch (Rack.UserSettings.SlidePlayMode)
+                {
+                    case _SlidePlayModes.On:
+                        if (value != selectedNote)
+                        {
+                            StopSelectedNote();
+                            selectedNote = value;
+                            if (blow)
+                            {
+                                PlaySelectedNote();
+                            }
+                        }
+                        break;
+
+                    case _SlidePlayModes.Off:
+                        if (value != selectedNote)
+                        {
+                            nextNote = value;
+                        }
+                        break;
+                }
+            }
+        }
+
+        public int Velocity
+        {
+            get { return velocity; }
+            set
+            {
+                if (value < 0)
+                {
+                    velocity = 0;
+                }
+                else if (value > 127)
+                {
+                    velocity = 127;
+                }
+                else
+                {
+                    velocity = value;
+                }
+            }
+        }
+
+        public void ResetModulationAndPressure()
+        {
+            Blow = false;
+            Modulation = 0;
+            Pressure = 127;
+            Velocity = 127;
+        }
+
+        private void PlaySelectedNote()
+        {
+            Rack.MidiModule.NoteOn((int)selectedNote, velocity);
+        }
+
+        private void SetModulation()
+        {
+            Rack.MidiModule.SetModulation(Modulation);
+        }
+
+        private void SetPressure()
+        {
+            Rack.MidiModule.SetPressure(pressure);
+        }
+
+        private void StopSelectedNote()
+        {
+            Rack.MidiModule.NoteOff((int)selectedNote);
+        }
+
+        #endregion Instrument logic
+
+        #region Graphic components
+
+        private NetytarSurface netytarSurface;
+        public NetytarSurface NetytarSurface { get => netytarSurface; set => netytarSurface = value; }
+
+        #endregion Graphic components
+
+        #region Shared values
+
+        private int accBaseX = 0;
+        private int accBaseY = 0;
+        private int accBaseZ = 0;
+        private int accX = 0;
+        private int accY = 0;
+        private int accZ = 0;
+        private double eyePosBaseX = 0;
+        private double eyePosBaseY = 0;
+        private double eyePosBaseZ = 0;
+        private int gyroBaseX = 0;
+        private int gyroBaseY = 0;
+        private int gyroBaseZ = 0;
+        private int gyroX = 0;
+        private int gyroY = 0;
+        private int gyroZ = 0;
+        public int AccBaseX { get => accBaseX; set => accBaseX = value; }
+        public int AccBaseY { get => accBaseY; set => accBaseY = value; }
+        public int AccBaseZ { get => accBaseZ; set => accBaseZ = value; }
+        public int AccCalibX { get => accX - GyroBaseX; }
+        public int AccCalibY { get => accY - GyroBaseY; }
+        public int AccCalibZ { get => accZ - GyroBaseZ; }
+        public int AccX { get => accX; set => accX = value; }
+        public int AccY { get => accY; set => accY = value; }
+        public int AccZ { get => accZ; set => accZ = value; }
+        public int GyroBaseX { get => gyroBaseX; set => gyroBaseX = value; }
+        public int GyroBaseY { get => gyroBaseY; set => gyroBaseY = value; }
+        public int GyroBaseZ { get => gyroBaseZ; set => gyroBaseZ = value; }
+        public int GyroCalibX { get => gyroX - GyroBaseX; }
+        public int GyroCalibY { get => gyroY - GyroBaseY; }
+        public int GyroCalibZ { get => gyroZ - GyroBaseZ; }
+        public int GyroX { get => gyroX; set => gyroX = value; }
+        public int GyroY { get => gyroY; set => gyroY = value; }
+        public int GyroZ { get => gyroZ; set => gyroZ = value; }
+        public double HeadPoseBaseX { get => eyePosBaseX; set => eyePosBaseX = value; }
+        public double HeadPoseBaseY { get => eyePosBaseY; set => eyePosBaseY = value; }
+        public double HeadPoseBaseZ { get => eyePosBaseZ; set => eyePosBaseZ = value; }
+        public double InputIndicatorValue { get; internal set; } = 0;
+        public double HeadYawPosition { get; internal set; }
+
+        public void CalibrateAccBase()
+        {
+            Rack.MappingModule.accBaseX = accX;
+            Rack.MappingModule.accBaseY = accY;
+            Rack.MappingModule.accBaseZ = accZ;
+        }
+
+        public void CalibrateGyroBase()
+        {
+            Rack.MappingModule.gyroBaseX = gyroX;
+            Rack.MappingModule.gyroBaseY = gyroY;
+            Rack.MappingModule.gyroBaseZ = gyroZ;
+        }
+
+        #endregion Shared values
+
+        // Aggiungi questo metodo nella regione #region Instrument logic
+        public void SetPitchBend(double normalizedValue)
+        {
+            PitchBendValue = normalizedValue;
+            // Conversione da -1..1 a 0..16383
+            int pitchBendMidiValue = (int)(8192 + (normalizedValue * 8192));
+            pitchBendMidiValue = Math.Clamp(pitchBendMidiValue, 0, 16383);
+            Rack.MidiModule.SetPitchBend(pitchBendMidiValue);
+        }
+    }
+}
