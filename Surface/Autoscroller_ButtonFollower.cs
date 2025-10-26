@@ -32,10 +32,10 @@ namespace HeadBower.Surface
         protected new void ListenPosition(object sender, EventArgs e)
         {
 
-            if (enabled && Rack.MappingModule.NetytarSurface.CheckedButton != null)
+            if (enabled && Rack.MappingModule.CheckedButton != null)
             {
-                var buttonX = Canvas.GetLeft(Rack.MappingModule.NetytarSurface.CheckedButton);
-                var buttonY = Canvas.GetTop(Rack.MappingModule.NetytarSurface.CheckedButton);
+                var buttonX = Canvas.GetLeft(Rack.MappingModule.CheckedButton);
+                var buttonY = Canvas.GetTop(Rack.MappingModule.CheckedButton);
 
                 var differenceX = (buttonX - scrollViewer.HorizontalOffset - scrollCenter.X);
                 var differenceY = (buttonY - scrollViewer.VerticalOffset - scrollCenter.Y);

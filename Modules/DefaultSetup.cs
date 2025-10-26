@@ -1,21 +1,18 @@
 ﻿using ConsoleEmulation;
-using HeadBower.Behaviors;
-using HeadBower.OLD.Behaviors;
+using HeadBower.Behaviors.HeadBow;
 using HeadBower.OLD.Behaviors.Eyetracker;
 using HeadBower.OLD.Behaviors.Keyboard;
 using HeadBower.Surface;
 using NITHdmis.Modules.MIDI;
-using NITHdmis.Music;
 using NITHemulation.Modules.Keyboard;
 using NITHemulation.Modules.Mouse;
+using NITHlibrary.Nith.Internals;
 using NITHlibrary.Nith.Module;
 using NITHlibrary.Nith.Preprocessors;
 using NITHlibrary.Nith.Wrappers.NithWebcamWrapper;
-using NITHlibrary.Tools.Filters.PointFilters;
 using NITHlibrary.Tools.Ports;
 using NITHlibrary.Tools.Senders;
 using RawInputProcessor;
-using System.Windows.Interop;
 
 namespace HeadBower.Modules
 {
@@ -33,7 +30,7 @@ namespace HeadBower.Modules
         public void Setup()
         {
             // Console writer
-            Rack.ConsoleWriter = new ConsoleTextToTextBox(Rack.InstrumentWindow.txtConsole, Rack.InstrumentWindow.scrConsole);
+            Rack.ConsoleWriter = new ConsoleTextToTextBlock(Rack.InstrumentWindow.txtConsole, Rack.InstrumentWindow.scrConsole);
             Console.SetOut(Rack.ConsoleWriter);
 
             // Mapping module
@@ -51,12 +48,29 @@ namespace HeadBower.Modules
             // Webcam wrapper
             Rack.NithModuleWebcam = new NithModule();
             Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_WebcamWrapper());
+            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_MAfilterParams(
+                new List<NithParameters>
+                {
+                    NithParameters.head_pos_yaw,
+                    NithParameters.head_pos_pitch,
+                    NithParameters.head_pos_roll
+                },
+                0.5f));
+            Rack.WebcamHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
+            Rack.NithModuleWebcam.Preprocessors.Add(Rack.WebcamHeadTrackerCalibrator);
+            // Calculate velocity first (before smoothing) to match eye tracker behavior
+            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_HeadVelocityCalculator(
+                filterAlpha: 0.2f,
+                velocitySensitivity: 0.2f));
+
+
+
+
+
 
             Rack.UDPreceiverWebcam = new UDPreceiver(20100);
             Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleWebcam);
-            Rack.NithModuleWebcam.SensorBehaviors.Add(new WriteToConsoleBehavior());
             Rack.UDPreceiverWebcam.Connect();
-
 
             // Eye tracker
             Rack.GazeToMouse = new NithSensorBehavior_GazeToMouse();
@@ -67,16 +81,13 @@ namespace HeadBower.Modules
 
             Rack.UDPreceiverEyeTracker = new UDPreceiver(20102); // tobias
             Rack.UDPreceiverEyeTracker.Listeners.Add(Rack.NithModuleEyeTracker);
+            Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadTrackerCalibrator());
             Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadVelocityCalculator());
-            Rack.ETheadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
-            Rack.NithModuleEyeTracker.Preprocessors.Add(Rack.ETheadTrackerCalibrator);
+            Rack.EyeTrackerHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
+            Rack.NithModuleEyeTracker.Preprocessors.Add(Rack.EyeTrackerHeadTrackerCalibrator);
 
             Rack.UDPreceiverEyeTracker.Connect();
-            //Rack.NithModuleEyeTracker.SensorBehaviors.Add(new EBBselectScale(Rack.InstrumentWindow));
-            //Rack.NithModuleEyeTracker.SensorBehaviors.Add(new EBBrepeatNote());
             
-
-
             // Phone receiver
             Rack.UDPreceiverPhone = new UDPreceiver(20103);
             Rack.NithModulePhone = new NithModule();
@@ -90,25 +101,20 @@ namespace HeadBower.Modules
 
             // Keyboard Module
             Rack.KeyboardModule = new KeyboardModuleWPF(Rack.InstrumentWindow, RawInputCaptureMode.Foreground);
-            Rack.KeyboardModule.KeyboardBehaviors.Add(new KBautoScroller());
             Rack.KeyboardModule.KeyboardBehaviors.Add(new KBemulateMouse());
-            Rack.KeyboardModule.KeyboardBehaviors.Add(new KBstopAutoScroller());
             Rack.KeyboardModule.KeyboardBehaviors.Add(new KBstopEmulateMouse());
             Rack.KeyboardModule.KeyboardBehaviors.Add(new KBsimulateBlow());
-            Rack.KeyboardModule.KeyboardBehaviors.Add(new KBselectScale());
 
 
             // Surface
             Rack.AutoScroller = new AutoScroller_ButtonMover(Rack.InstrumentWindow.NoteCanvas, 0, 50, 0.1, 0.18);
-            // R.NetytarDmiBox.AutoScroller = new Autoscroller_ButtonFollower(R.NetytarMainWindow.scrlNetytar, 0, 130, new PointFilterMAExpDecaying(0.07f)); // OLD was 100, 0.1f
-            //Rack.NetytarDmiBox.AutoScroller = new AutoScroller(Rack.NetytarMainWindow., 0, 100, new PointFilterMAexpDecaying(0.07f)); // OLD was 100, 0.1f
-            //Rack.NetytarDmiBox.NetytarSurface = new NetytarSurface(Rack.NetytarMainWindow.canvasNetytar, Rack.DrawMode);
-            //Rack.NetytarDmiBox.NetytarSurface.DrawButtons();
-            //Rack.NetytarDmiBox.NetytarSurface.Scale = new Scale(Rack.UserSettings.RootNote, Rack.UserSettings.ScaleCode);
 
             // Rendering module
             Rack.RenderingModule = new RenderingModule(Rack.InstrumentWindow);
             Rack.RenderingModule.StartRendering();
+
+            // HeadBow behavior
+            Rack.Behavior_HeadBow = new NITHbehavior_HeadViolinBow(operationMode: NITHbehavior_HeadViolinBow.WhatDoesPitchRotationDo.Modulation);
 
             // Disposables
             disposables.Add(Rack.USBreceiverHeadTracker);
@@ -133,6 +139,16 @@ namespace HeadBower.Modules
             }
 
             disposed = true;
+
+            // Send MIDI panic before disposing
+            try
+            {
+                Rack.MidiModule?.SetPanic();
+            }
+            catch
+            {
+                // Silent failure if MIDI panic fails
+            }
 
             foreach (var disposable in disposables)
             {

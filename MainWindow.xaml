@@ -4,7 +4,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="Netytar" WindowStyle="None" ResizeMode="NoResize"
+    Title="HeadBower" WindowStyle="None" ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen" WindowState="Maximized" Width="1537" Height="865" Loaded="Window_Loaded" Unloaded="Window_Unloaded">
 
 
@@ -106,8 +106,8 @@
             </StackPanel>
         </Grid>
 
-        
-        
+
+
         <!-- LAYOUT -->
         <TabControl Grid.Row="1" x:Name="tabSolo" BorderBrush="Transparent" Background="Black" Grid.ColumnSpan="2">
             <TabItem x:Name="tabViolinLayout" Header="Violin Neck" Visibility="Collapsed" BorderBrush="Transparent">
@@ -204,7 +204,7 @@
                                 <Ellipse Grid.Row="4" Grid.Column="3" Fill="White" Width="20" Height="20" Opacity="0.7"/>
                                 <Ellipse Grid.Row="4" Grid.Column="5" Fill="White" Width="20" Height="20" Opacity="0.7"/>
                             </Grid>
-                            
+
                             <!-- Add the ViolinBowOverlay for Violin layout -->
                             <Canvas x:Name="ViolinOverlayViolin" Width="200" Height="200" Visibility="Collapsed" Panel.ZIndex="1000"/>
 
@@ -238,7 +238,7 @@
 
                         <!-- Bottone "DO" (315°) -->
                         <Button Tag="72" x:Name="CButton2" Style="{StaticResource RoundButton}" Content="DO" Width="100" Height="100" Canvas.Left="59" Canvas.Top="59" Background="#FFE7EA29" MouseEnter="NoteButton_MouseEnter" MouseLeave="NoteButton_MouseLeave"/>
-                        
+
                         <!-- Add the ViolinBowOverlay for Circle layout -->
                         <Canvas x:Name="ViolinOverlayCircle" Width="200" Height="200" Visibility="Collapsed" Panel.ZIndex="1000"/>
                     </Canvas>
@@ -309,54 +309,26 @@
                     </Grid>
 
                     <!-- Root note selector -->
-                    <Label Content="Scale selection" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width = "1*" />
-                            <ColumnDefinition Width = "1*" />
-                            <ColumnDefinition Width = "1*" />
+                            <ColumnDefinition Width = "98*" />
+                            <ColumnDefinition Width="25*"/>
+                            <ColumnDefinition Width = "123*" />
+                            <ColumnDefinition Width = "123*" />
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Name="btnRootNoteMinus" Content="⮜" Click="btnRootNoteMinus_Click"  Style="{StaticResource DWood}" />
-                        <Border Grid.Column="1" Style="{StaticResource LCDBorder}">
-                            <UniformGrid Columns="2">
-                                <TextBlock Name="txtRootNote" Text="N" Style="{StaticResource LCDText}" />
-                                <Border Name="indRootNoteColor" Style="{StaticResource Indicator}" Background="white" />
-                            </UniformGrid>
-                        </Border>
-                        <Button Grid.Column="2" Name="btnRootNotePlus" Content="⮞" Click="btnRootNotePlus_Click" Style="{StaticResource DWood}" />
                     </Grid>
 
                     <!-- Scale type selector -->
-                    <UniformGrid Columns="2" Rows="1">
-                        <Button Name="btnScaleMajor" Style="{StaticResource DWoodLeft}" Click="btnScaleMajor_Click">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indScaleMajor" Style="{StaticResource Indicator}" />
-                                <Label Content="Major" VerticalAlignment="Center" FontSize="18" Foreground="LightCoral" />
-                            </StackPanel>
-                        </Button>
-                        <Button Name="btnScaleMinor" Style="{StaticResource DWoodLeft}" Click="btnScaleMinor_Click">
-
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indScaleMinor" Style="{StaticResource Indicator}" />
-                                <Label Content="Minor" VerticalAlignment="Center" FontSize="18" Foreground="LightBlue"/>
-                            </StackPanel>
-                        </Button>
-                    </UniformGrid>
+                    <UniformGrid Columns="2" Rows="1"/>
 
                     <!-- Keys spacing -->
-                    <Label Content="Keys spacing" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width = "1*" />
                             <ColumnDefinition Width = "1*" />
                             <ColumnDefinition Width = "1*" />
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Name="btnSpacingMinus" Content="⮜" Click="btnSpacingMinus_Click"  Style="{StaticResource DWood}" />
-                        <Border Grid.Column="1" Style="{StaticResource LCDBorder}">
-                            <TextBlock Name="txtSpacing" Text="-" Style="{StaticResource LCDText}">
-                            </TextBlock>
-                        </Border>
-                        <Button Grid.Column="2" Name="btnSpacingPlus" Content="⮞" Click="btnSpacingPlus_Click"  Style="{StaticResource DWood}" />
+                        <Border Grid.Column="1" Style="{StaticResource LCDBorder}"/>
                     </Grid>
                     <Border Style="{StaticResource BlackBorder}" Canvas.Left="525" Canvas.Top="70" Height="197" Width="232" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <ScrollViewer x:Name="scrConsole" VerticalScrollBarVisibility="Auto">
@@ -381,21 +353,8 @@
                             <Label VerticalAlignment="Center" Content="Modul." />
                         </StackPanel>
 
-                        <!-- Breath switch -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Name="btnBSwitch" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnBSwitch_Click">
-                                <Border Name="indBSwitch" Style="{StaticResource Indicator}" />
-                            </Button>
-                            <Label VerticalAlignment="Center" Content="B. switch" />
-                        </StackPanel>
-
                         <!-- Sharp notes -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Name="btnSharpNotes" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnSharpNotes_Click">
-                                <Border Name="indSharpNotes" Style="{StaticResource Indicator}" />
-                            </Button>
-                            <Label VerticalAlignment="Center" Content="Accid." />
-                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
 
 
 
@@ -408,56 +367,16 @@
                         </StackPanel>
 
                         <!-- Note names -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Name="btnNoteNames" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnNoteNames_Click">
-                                <Border Name="indNoteNames" Style="{StaticResource Indicator}" />
-                            </Button>
-                            <Label VerticalAlignment="Center" Content="Names" />
-                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
 
                         <!-- Blink play (HIDDEN) -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Name="btnBlinkPlay" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnBlinkPlay_Click">
-                                <Border Name="indBlinkPlay" Style="{StaticResource Indicator}" />
-                            </Button>
-                            <Label VerticalAlignment="Center" Content="Blink p." />
-                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
 
                     </UniformGrid>
 
                     <!-- Control selector -->
                     <Label Content="Interaction method" />
-                    <UniformGrid Columns="2" Rows="3">
-                        <Button Name="btnKeyboard" Style="{StaticResource DWoodLeft}" Click="btnKeyboard_Click">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indKeyboard" Style="{StaticResource Indicator}" />
-                                <Label Content="Keys" VerticalAlignment="Center" FontSize="18" Style="{StaticResource ButtonLabel}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Name="btnBreath" Style="{StaticResource DWoodLeft}" Click="btnBreath_Click">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indBreath" Style="{StaticResource Indicator}" />
-                                <Label Content="Breath" VerticalAlignment="Center" FontSize="18" Style="{StaticResource ButtonLabel}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Name="btnTeeth" Style="{StaticResource DWoodLeft}" Click="btnTeeth_Click">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indTeeth" Style="{StaticResource Indicator}" />
-                                <Label Content="Teeth" VerticalAlignment="Center" FontSize="18" Style="{StaticResource ButtonLabel}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Name="btnHeadYaw" Style="{StaticResource DWoodLeft}" Click="btnHeadYaw_Click">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indHeadYaw" Style="{StaticResource Indicator}" />
-                                <Label Content="Head (yaw)" VerticalAlignment="Center" FontSize="18" Style="{StaticResource ButtonLabel}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Name="btnMouthAperture" Style="{StaticResource DWoodLeft}" Click="BtnMouthAperture_OnClick">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
-                                <Border Name="indMouthAperture" Style="{StaticResource Indicator}" />
-                                <Label Content="Mouth" VerticalAlignment="Center" FontSize="18" Style="{StaticResource ButtonLabel}"/>
-                            </StackPanel>
-                        </Button>
+                    <UniformGrid Columns="1" Rows="1">
                         <Button Name="btnHeadBow" Style="{StaticResource DWoodLeft}" Click="btnHeadBow_Click">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
                                 <Border Name="indHeadBow" Style="{StaticResource Indicator}" />
@@ -466,12 +385,35 @@
                         </Button>
                     </UniformGrid>
 
-                    <!-- -> Added a new section for "Toolkit" as requested. -->
+                    <!-- Head tracking source selector -->
+                    <Label Content="Head tracking source" />
+                    <UniformGrid Columns="2" Rows="1">
+                        <Button Name="btnEyeTracker" Style="{StaticResource DWoodLeft}" Click="btnEyeTracker_Click">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
+                                <Border Name="indEyeTracker" Style="{StaticResource Indicator}" />
+                                <Label Content="Eye Tracker" VerticalAlignment="Center" FontSize="14" Style="{StaticResource ButtonLabel}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Name="btnWebcam" Style="{StaticResource DWoodLeft}" Click="btnWebcam_Click">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
+                                <Border Name="indWebcam" Style="{StaticResource Indicator}" />
+                                <Label Content="Webcam" VerticalAlignment="Center" FontSize="14" Style="{StaticResource ButtonLabel}"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+                    <Button Name="btnPhone" Style="{StaticResource DWoodLeft}" Click="btnPhone_Click" Margin="0,2,0,0">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
+                            <Border Name="indPhone" Style="{StaticResource Indicator}" />
+                            <Label Content="Phone" VerticalAlignment="Center" FontSize="14" Style="{StaticResource ButtonLabel}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Toolkit section - with Reconnect button -->
                     <Label Content="Toolkit" Margin="0,10,0,0" />
-                    <!-- -> Added a "Reconnect" button within the "Toolkit" section as requested. -->
-                    <!-- -> Used the DWood style and standard button properties. -->
                     <Button Name="btnReconnect" Content="Reconnect" Click="btnReconnect_Click" Style="{StaticResource DWood}" Margin="0,5,0,0" />
-                    <!-- -> Nella sezione "Toolkit" dopo il bottone "Reconnect" -->
+                    <Label Content="Local IP Address" />
+                    <TextBlock Name="txtLocalIP" Foreground="White" Text="Retrieving..." Margin="5,0,5,5" />
+                    <!-- Phone IP Address section -->
                     <StackPanel Orientation="Vertical" Margin="0,10,0,0">
                         <Label Content="Phone IP Address" />
                         <Grid>
@@ -487,15 +429,5 @@
                 </StackPanel>
             </Grid>
         </Border>
-
-
-        <!-- OLD ___________________________________________ OLD __________________ -->
-
-
-        <!--  MODULATION AND SWITCHES  -->
-
     </Grid>
-
-
-
 </Window>

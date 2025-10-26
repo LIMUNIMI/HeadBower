@@ -31,10 +31,10 @@ namespace HeadBower.Modules
         public static NithModule NithModulePhone { get; set; }
         public static NithSender NithSenderPhone { get; set; }
 
-        public static ConsoleTextToTextBox ConsoleWriter { get; set; }
+        public static ConsoleTextToTextBlock ConsoleWriter { get; set; }
         public static MidiModuleNAudio MidiModule { get; set; }
 
-        public static NITHbehavior_headViolinBow Behavior_HeadBow { get; set; }
+        public static NITHbehavior_HeadViolinBow Behavior_HeadBow { get; set; }
 
         public const int HORIZONTALSPACING_MAX = 300;
         public const int HORIZONTALSPACING_MIN = 80;
@@ -42,7 +42,6 @@ namespace HeadBower.Modules
         public static NithPreprocessor_HeadTrackerCalibrator PreprocessorHeadTrackerCalibrator = new();
         public static IButtonsSettings ButtonsSettings { get; set; } = new DefaultButtonSettings();
         public static IColorCode ColorCode { get; set; } = new DefaultColorCode();
-        public static NetytarSurfaceLineModes DrawMode { get; set; } = NetytarSurfaceLineModes.OnlyScaleLines;
         public static KeyboardModuleWPF KeyboardModule { get; set; }
         public static MainWindow InstrumentWindow { get; set; }
 
@@ -54,7 +53,8 @@ namespace HeadBower.Modules
 
         public static AutoScroller_ButtonMover AutoScroller { get; set; }
 
-        public static NithPreprocessor_HeadTrackerCalibrator ETheadTrackerCalibrator { get; set; }
+        public static NithPreprocessor_HeadTrackerCalibrator EyeTrackerHeadTrackerCalibrator { get; set; }
 
+        public static NithPreprocessor_HeadTrackerCalibrator WebcamHeadTrackerCalibrator { get; set; }
     }
 }

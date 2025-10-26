@@ -9,7 +9,6 @@ namespace HeadBower.Modules
     /// </summary>
     public class MappingModule
     {
-        private const _BreathControlModes DEFAULT_BREATHCONTROLMODE = _BreathControlModes.Dynamic;
         private const int MIN_VALUES_THRESHOLD = 1;
         private bool hasAButtonGaze = false;
 
@@ -34,11 +33,6 @@ namespace HeadBower.Modules
         private Scale StartingScale { get; set; }
 
         #region Switchable
-
-        private _BreathControlModes breathControlMode = DEFAULT_BREATHCONTROLMODE;
-
-        public _BreathControlModes BreathControlMode
-        { get => breathControlMode; set { breathControlMode = value; ResetModulationAndPressure(); } }
 
         #endregion Switchable
 
@@ -138,31 +132,23 @@ namespace HeadBower.Modules
             get { return pressure; }
             set
             {
-                if (BreathControlMode == _BreathControlModes.Dynamic)
+                if (value < MIN_VALUES_THRESHOLD && value > 1)
                 {
-                    if (value < MIN_VALUES_THRESHOLD && value > 1)
-                    {
-                        pressure = MIN_VALUES_THRESHOLD;
-                    }
-                    else if (value > 127)
-                    {
-                        pressure = 127;
-                    }
-                    else if (value == 0)
-                    {
-                        pressure = 0;
-                    }
-                    else
-                    {
-                        pressure = value;
-                    }
-                    SetPressure();
+                    pressure = MIN_VALUES_THRESHOLD;
                 }
-                if (BreathControlMode == _BreathControlModes.Switch)
+                else if (value > 127)
                 {
                     pressure = 127;
-                    SetPressure();
                 }
+                else if (value == 0)
+                {
+                    pressure = 0;
+                }
+                else
+                {
+                    pressure = value;
+                }
+                SetPressure();
             }
         }
 
@@ -245,12 +231,6 @@ namespace HeadBower.Modules
 
         #endregion Instrument logic
 
-        #region Graphic components
-
-        private NetytarSurface netytarSurface;
-        public NetytarSurface NetytarSurface { get => netytarSurface; set => netytarSurface = value; }
-
-        #endregion Graphic components
 
         #region Shared values
 
@@ -292,6 +272,7 @@ namespace HeadBower.Modules
         public double HeadPoseBaseZ { get => eyePosBaseZ; set => eyePosBaseZ = value; }
         public double InputIndicatorValue { get; internal set; } = 0;
         public double HeadYawPosition { get; internal set; }
+        public Button CheckedButton { get; internal set; }
 
         public void CalibrateAccBase()
         {

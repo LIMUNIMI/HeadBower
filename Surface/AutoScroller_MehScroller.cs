@@ -63,8 +63,8 @@ namespace HeadBower.Surface
 
             if (enabled)
             {
-                var buttonX = Canvas.GetLeft(Rack.MappingModule.NetytarSurface.CheckedButton);
-                var buttonY = Canvas.GetTop(Rack.MappingModule.NetytarSurface.CheckedButton);
+                var buttonX = Canvas.GetLeft(Rack.MappingModule.CheckedButton);
+                var buttonY = Canvas.GetTop(Rack.MappingModule.CheckedButton);
 
                 var differenceX = scrollViewer.HorizontalOffset - buttonX + scrollCenter.X;
                 var differenceY = scrollViewer.VerticalOffset - buttonY + scrollCenter.Y;

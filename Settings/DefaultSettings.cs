@@ -18,19 +18,16 @@ namespace HeadBower.Settings
             LineThickness = 3;
             SharpNotesMode = _SharpNotesModes.On;
             BlinkSelectScaleMode = _BlinkSelectScaleMode.On;
-            BreathControlMode = _BreathControlModes.Dynamic;
             ModulationControlMode = _ModulationControlModes.Off;
-            InteractionMethod = InteractionMappings.Breath;
+            InteractionMapping = InteractionMappings.HeadBow;
             SlidePlayMode = _SlidePlayModes.On;
             SensorPort = 4;
             MIDIPort = 1;
             RootNote = AbsNotes.C;
             ScaleCode = ScaleCodes.maj;
             NoteNamesVisualized = false;
-            SensorIntensityBreath = 1f;
-            SensorIntensityTeeth = 1f;
             SensorIntensityHead = 1f;
-            SensorIntensityMouth = 1f;
+            HeadTrackingSource = HeadTrackingSources.EyeTracker;
         }
     }
 }

@@ -1,34 +1,37 @@
-﻿using System.Globalization;
+﻿using System.Text.Json;
 using System.IO;
-using CsvHelper;
 
 namespace HeadBower.Settings
 {
     public class SavingSystem
     {
         public const string DEFAULTFILENAME = "Settings";
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public SavingSystem(string settingsFilename = DEFAULTFILENAME)
         {
             SettingsFilename = settingsFilename;
+            _jsonOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
         }
 
         private string SettingsFilename { get; set; }
 
+        /// <summary>
+        /// Saves settings to a JSON file.
+        /// </summary>
+        /// <param name="settings">The settings object to save.</param>
+        /// <returns>0 if successful, 1 if an error occurred.</returns>
         public int SaveSettings(NetytarSettings settings)
         {
             try
             {
-                // Settings
-
-                List<NetytarSettings> records = new List<NetytarSettings> { settings };
-
-                using (var writer = new StreamWriter(SettingsFilename + ".csv"))
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-                {
-                    csv.WriteRecords(records);
-                }
-
+                string filePath = SettingsFilename + ".json";
+                string json = JsonSerializer.Serialize(settings, _jsonOptions);
+                File.WriteAllText(filePath, json);
                 return 0;
             }
             catch
@@ -37,25 +40,30 @@ namespace HeadBower.Settings
             }
         }
 
+        /// <summary>
+        /// Loads settings from a JSON file.
+        /// </summary>
+        /// <returns>The loaded settings, or default settings if the file doesn't exist or an error occurs.</returns>
         public NetytarSettings LoadSettings()
         {
             try
             {
-                List<NetytarSettings> settings = new List<NetytarSettings>();
-                using (var reader = new StreamReader(SettingsFilename + ".csv"))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                string filePath = SettingsFilename + ".json";
+                
+                if (!File.Exists(filePath))
                 {
-                    var records = csv.GetRecords<NetytarSettings>();
-                    settings = records.ToList();
+                    return new DefaultSettings();
                 }
-                return settings[0];
+
+                string json = File.ReadAllText(filePath);
+                var settings = JsonSerializer.Deserialize<NetytarSettings>(json, _jsonOptions);
+                
+                return settings ?? new DefaultSettings();
             }
             catch
             {
                 return new DefaultSettings();
             }
         }
-
-        
     }
 }

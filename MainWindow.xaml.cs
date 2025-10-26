@@ -2,19 +2,15 @@
 using HeadBower.Behaviors;
 using HeadBower.Behaviors.HeadBow;
 using HeadBower.Modules;
-using HeadBower.OLD.Behaviors.Headtracker;
-using HeadBower.OLD.Behaviors.Mouth;
-using HeadBower.OLD.Behaviors.Pressure;
+using HeadBower.Visuals; // add reference
 using NITHdmis.Music;
-using NITHlibrary.Nith.Internals;
 using NITHlibrary.Tools.Logging;
-using System.Security.AccessControl;
+using System.Net;
+using System.Net.Sockets;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using HeadBower.Visuals; // add reference
 
 namespace HeadBower
 {
@@ -53,7 +49,6 @@ namespace HeadBower
             overlayManager = new ViolinOverlayManager(ViolinOverlayViolin);
         }
 
-        public int BreathSensorValue { get; set; } = 0;
         public bool IsSettingsShown { get; set; } = false;
         public Button LastSettingsGazedButton { get; set; } = null;
         public Scale SelectedScale { get; set; } = ScalesFactory.Cmaj;
@@ -87,10 +82,6 @@ namespace HeadBower
             UpdateGUIVisuals();
         }
 
-        internal void ChangeScale(ScaleCodes scaleCode)
-        {
-            Rack.MappingModule.NetytarSurface.Scale = new Scale(Rack.MappingModule.SelectedNote.ToAbsNote(), scaleCode);
-        }
 
         private void btnBlinkPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -115,86 +106,9 @@ namespace HeadBower
             }
         }
 
-        private void btnBreath_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.Breath;
-                ChangeMapping();
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnBreathControlSwitch_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                if (Rack.MappingModule.BreathControlMode == _BreathControlModes.Switch)
-                {
-                    Rack.MappingModule.BreathControlMode = _BreathControlModes.Dynamic;
-                }
-                else if (Rack.MappingModule.BreathControlMode == _BreathControlModes.Dynamic)
-                {
-                    Rack.MappingModule.BreathControlMode = _BreathControlModes.Switch;
-                }
-            }
-
-            BreathSensorValue = 0;
-
-            UpdateGUIVisuals();
-        }
-
-        private void btnBSwitch_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.BreathControlMode = Rack.UserSettings.BreathControlMode == _BreathControlModes.Dynamic ? _BreathControlModes.Switch : _BreathControlModes.Dynamic;
-                UpdateGUIVisuals();
-            }
-        }
-
         private void btnCalibrateHeadPose_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             //btnCalibrateHeadPose.Background = new SolidColorBrush(Colors.Black);
-        }
-
-        private void btnCtrlEyePos_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.EyePos;
-                Rack.MappingModule.ResetModulationAndPressure();
-
-                BreathSensorValue = 0;
-
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnCtrlEyeVel_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.EyeVel;
-                Rack.MappingModule.ResetModulationAndPressure();
-
-                BreathSensorValue = 0;
-
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnCtrlKeyboard_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.Keyboard;
-                Rack.MappingModule.ResetModulationAndPressure();
-
-                BreathSensorValue = 0;
-
-                UpdateGUIVisuals();
-            }
         }
 
         private void btnExit_Activate(object sender, RoutedEventArgs e)
@@ -210,26 +124,6 @@ namespace HeadBower
         private void BtnFFBTest_Click(object sender, RoutedEventArgs e)
         {
             //Rack.DMIBox.FfbModule.FlashFFB();
-        }
-
-        private void btnHeadYaw_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.HeadYaw;
-                ChangeMapping();
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnKeyboard_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.Keyboard;
-                ChangeMapping();
-                UpdateGUIVisuals();
-            }
         }
 
         private void BtnMIDIchMinus_Click(object sender, RoutedEventArgs e)
@@ -285,74 +179,6 @@ namespace HeadBower
             UpdateGUIVisuals();
         }
 
-        private void btnNoteNames_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.NoteNamesVisualized = !Rack.UserSettings.NoteNamesVisualized;
-                Rack.MappingModule.NetytarSurface.NoteNamesVisualized = Rack.UserSettings.NoteNamesVisualized;
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnRemoveSharps_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                if (Rack.UserSettings.SharpNotesMode == _SharpNotesModes.Off)
-                {
-                    Rack.UserSettings.SharpNotesMode = _SharpNotesModes.On;
-                }
-                else if (Rack.UserSettings.SharpNotesMode == _SharpNotesModes.On)
-                {
-                    Rack.UserSettings.SharpNotesMode = _SharpNotesModes.Off;
-                }
-
-                UpdateGUIVisuals();
-                Rack.MappingModule.NetytarSurface.DrawButtons();
-            }
-        }
-
-        private void btnRootNoteMinus_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.RootNote = Rack.UserSettings.RootNote.Previous();
-                Rack.MappingModule.NetytarSurface.Scale = new Scale(Rack.UserSettings.RootNote, Rack.UserSettings.ScaleCode);
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnRootNotePlus_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.RootNote = Rack.UserSettings.RootNote.Next();
-                Rack.MappingModule.NetytarSurface.Scale = new Scale(Rack.UserSettings.RootNote, Rack.UserSettings.ScaleCode);
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnScaleMajor_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.ScaleCode = ScaleCodes.maj;
-                Rack.MappingModule.NetytarSurface.Scale = new Scale(Rack.UserSettings.RootNote, Rack.UserSettings.ScaleCode);
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnScaleMinor_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.ScaleCode = ScaleCodes.min;
-                Rack.MappingModule.NetytarSurface.Scale = new Scale(Rack.UserSettings.RootNote, Rack.UserSettings.ScaleCode);
-                UpdateGUIVisuals();
-            }
-        }
-
         private void BtnScroll_Click(object sender, RoutedEventArgs e)
         {
             Rack.AutoScroller.Enabled = !Rack.AutoScroller.Enabled;
@@ -394,16 +220,6 @@ namespace HeadBower
             UpdateGUIVisuals();
         }
 
-        private void btnSharpNotes_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.SharpNotesMode = Rack.UserSettings.SharpNotesMode == _SharpNotesModes.On ? _SharpNotesModes.Off : _SharpNotesModes.On;
-                Rack.MappingModule.NetytarSurface.DrawButtons();
-                UpdateGUIVisuals();
-            }
-        }
-
         private void btnSlidePlay_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
@@ -428,46 +244,6 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.SlidePlayMode = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? _SlidePlayModes.Off : _SlidePlayModes.On;
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnSpacingMinus_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                if (Rack.UserSettings.HorizontalSpacer > Rack.HORIZONTALSPACING_MIN)
-                {
-                    Rack.UserSettings.HorizontalSpacer -= 10;
-                    Rack.UserSettings.VerticalSpacer = -(Rack.UserSettings.HorizontalSpacer / 2);
-                }
-
-                Rack.MappingModule.NetytarSurface.DrawButtons();
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnSpacingPlus_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                if (Rack.UserSettings.HorizontalSpacer < Rack.HORIZONTALSPACING_MAX)
-                {
-                    Rack.UserSettings.HorizontalSpacer += 10;
-                    Rack.UserSettings.VerticalSpacer = -(Rack.UserSettings.HorizontalSpacer / 2);
-                }
-
-                Rack.MappingModule.NetytarSurface.DrawButtons();
-                UpdateGUIVisuals();
-            }
-        }
-
-        private void btnTeeth_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.Teeth;
-                ChangeMapping();
                 UpdateGUIVisuals();
             }
         }
@@ -521,18 +297,39 @@ namespace HeadBower
             // Checks the selected MIDI port is available
             CheckMidiPort();
 
+            // Display local IP address
+            DisplayLocalIPAddress();
+
             brdSettings.Visibility = Visibility.Hidden;
 
             // LEAVE AT THE END!
             InstrumentStarted = true;
-            ChangeMapping();
+            UpdateHeadTrackingSource();
             UpdateSensorConnection();
             UpdateGUIVisuals();
         }
 
+        private void DisplayLocalIPAddress()
+        {
+            try
+            {
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    socket.Connect("8.8.8.8", 65530);
+                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                    string localIP = endPoint?.Address.ToString() ?? "0.0.0.0";
+                    txtLocalIP.Text = localIP;
+                }
+            }
+            catch
+            {
+                txtLocalIP.Text = "Unable to retrieve IP";
+            }
+        }
+
         private void Test(object sender, RoutedEventArgs e)
         {
-            Rack.MappingModule.NetytarSurface.DrawScale();
+
         }
 
         // Metodo per posizionare l'overlay sopra il pulsante corrente
@@ -554,22 +351,13 @@ namespace HeadBower
             // TEXT
             txtMIDIch.Text = "MP" + Rack.UserSettings.MIDIPort.ToString();
             txtSensorPort.Text = "COM" + Rack.UserSettings.SensorPort.ToString();
-            txtRootNote.Text = Rack.UserSettings.RootNote.ToString();
-            txtSpacing.Text = Rack.UserSettings.HorizontalSpacer.ToString();
 
             /// INDICATORS
-            indHeadBow.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.HeadBow ? ActiveBrush : BlankBrush;
-            indBreath.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.Breath ? ActiveBrush : BlankBrush;
-            indTeeth.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.Teeth ? ActiveBrush : BlankBrush;
-            indHeadYaw.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.HeadYaw ? ActiveBrush : BlankBrush;
-            indKeyboard.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.Keyboard ? ActiveBrush : BlankBrush;
-            indMouthAperture.Background = Rack.UserSettings.InteractionMethod == InteractionMappings.Mouth ? ActiveBrush : BlankBrush;
-            indRootNoteColor.Background = Rack.ColorCode.FromAbsNote(Rack.UserSettings.RootNote);
-            indScaleMajor.Background = (Rack.UserSettings.ScaleCode == ScaleCodes.maj) ? ActiveBrush : BlankBrush;
-            indScaleMinor.Background = (Rack.UserSettings.ScaleCode == ScaleCodes.min) ? ActiveBrush : BlankBrush;
+            indHeadBow.Background = Rack.UserSettings.InteractionMapping == InteractionMappings.HeadBow ? ActiveBrush : BlankBrush;
+            indEyeTracker.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.EyeTracker ? ActiveBrush : BlankBrush;
+            indWebcam.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Webcam ? ActiveBrush : BlankBrush;
+            indPhone.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Phone ? ActiveBrush : BlankBrush;
             indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
-            indBSwitch.Background = Rack.UserSettings.BreathControlMode == _BreathControlModes.Switch ? ActiveBrush : BlankBrush;
-            indSharpNotes.Background = Rack.UserSettings.SharpNotesMode == _SharpNotesModes.On ? ActiveBrush : BlankBrush;
             indSlidePlay.Background = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? ActiveBrush : BlankBrush;
             indToggleCursor.Background = Rack.MappingModule.CursorHidden ? ActiveBrush : BlankBrush;
             indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;
@@ -582,6 +370,19 @@ namespace HeadBower
             CheckMidiPort();
 
             Update_SensorIntensityVisuals();
+        }
+
+        private void Update_SensorIntensityVisuals()
+        {
+            switch (Rack.UserSettings.InteractionMapping)
+            {
+                case InteractionMappings.HeadBow:
+                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F1");
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         private void UpdateSensorConnection()
@@ -597,14 +398,6 @@ namespace HeadBower
             {
                 try
                 {
-                    // Aggiorna eventuale cambio di scala
-                    if (!SelectedScale.GetName().Equals(lastScale.GetName()))
-                    {
-                        lastScale = SelectedScale;
-                        Rack.MappingModule.NetytarSurface.Scale = SelectedScale;
-                        UpdateGUIVisuals();
-                    }
-
                     txtNoteName.Text = Rack.MappingModule.SelectedNote.ToStandardString();
                     txtPitch.Text = Rack.MappingModule.SelectedNote.ToPitchValue().ToString();
                     txtIsBlowing.Text = Rack.MappingModule.Blow ? "B" : "_";
@@ -681,123 +474,61 @@ namespace HeadBower
         {
             netytarSetup.Dispose();
         }
-
-        private void BtnSensingIntensityMinus_OnClick(object sender, RoutedEventArgs e)
+        private void UpdateHeadTrackingSource()
         {
-            switch (Rack.UserSettings.InteractionMethod)
+            // Remove HeadBow behavior and WriteToConsoleBehavior from all modules
+            if (Rack.NithModuleHeadTracker.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
             {
-                case InteractionMappings.Keyboard:
-                    break;
-
-                case InteractionMappings.Breath:
-                    Rack.UserSettings.SensorIntensityBreath -= 0.1f;
-                    break;
-
-                case InteractionMappings.Teeth:
-                    Rack.UserSettings.SensorIntensityTeeth -= 0.1f;
-                    break;
-
-                case InteractionMappings.HeadYaw:
-                    Rack.UserSettings.SensorIntensityHead -= 0.1f;
-                    break;
-
-                case InteractionMappings.Mouth:
-                    Rack.UserSettings.SensorIntensityMouth -= 0.1f;
-                    break;
+                Rack.NithModuleHeadTracker.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
+            }
+            if (Rack.NithModuleWebcam.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
+            {
+                Rack.NithModuleWebcam.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
+            }
+            if (Rack.NithModulePhone.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
+            {
+                Rack.NithModulePhone.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
+            }
+            if (Rack.NithModuleEyeTracker.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
+            {
+                Rack.NithModuleEyeTracker.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
             }
 
-            ChangeMapping();
-            UpdateGUIVisuals();
-        }
-
-        private void BtnSensingIntensityPlus_OnClick(object sender, RoutedEventArgs e)
-        {
-            switch (Rack.UserSettings.InteractionMethod)
+            // Remove WriteToConsoleBehavior from all modules
+            var writeToConsoleBehaviors = Rack.NithModuleWebcam.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
+            foreach (var behavior in writeToConsoleBehaviors)
             {
-                case InteractionMappings.Keyboard:
-                    break;
-
-                case InteractionMappings.Breath:
-                    Rack.UserSettings.SensorIntensityBreath += 0.1f;
-                    break;
-
-                case InteractionMappings.Teeth:
-                    Rack.UserSettings.SensorIntensityTeeth += 0.1f;
-                    break;
-
-                case InteractionMappings.HeadYaw:
-                    Rack.UserSettings.SensorIntensityHead += 0.1f;
-                    break;
-
-                case InteractionMappings.Mouth:
-                    Rack.UserSettings.SensorIntensityMouth += 0.1f;
-                    break;
+                Rack.NithModuleWebcam.SensorBehaviors.Remove(behavior);
             }
 
-            ChangeMapping();
-            UpdateGUIVisuals();
-        }
-
-        private void Update_SensorIntensityVisuals()
-        {
-            switch (Rack.UserSettings.InteractionMethod)
+            writeToConsoleBehaviors = Rack.NithModulePhone.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
+            foreach (var behavior in writeToConsoleBehaviors)
             {
-                case InteractionMappings.Keyboard:
-                    break;
-
-                case InteractionMappings.Breath:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityBreath.ToString("F1");
-                    break;
-
-                case InteractionMappings.Teeth:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityTeeth.ToString("F1");
-                    break;
-
-                case InteractionMappings.HeadYaw:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F1");
-                    break;
-
-                case InteractionMappings.Mouth:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityMouth.ToString("F1");
-                    break;
-
-                default:
-                    break;
+                Rack.NithModulePhone.SensorBehaviors.Remove(behavior);
             }
-        }
 
-        private void ChangeMapping()
-        {
-            Rack.NithModuleHeadTracker.SensorBehaviors.Clear();
-            Rack.NithModuleWebcam.SensorBehaviors.Clear();
-            Rack.NithModulePhone.SensorBehaviors.Clear();
-            Rack.NithModuleEyeTracker.SensorBehaviors.RemoveAll(behavior => behavior is NITHbehavior_headViolinBow_yawAndBend);
-
-            switch (Rack.UserSettings.InteractionMethod)
+            writeToConsoleBehaviors = Rack.NithModuleEyeTracker.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
+            foreach (var behavior in writeToConsoleBehaviors)
             {
-                case InteractionMappings.HeadYaw:
-                    //Rack.NithModuleHeadTracker.SensorBehaviors.Add(new NithSensorBehaviorYawPlay(Rack.UserSettings.SensorIntensityHead));
-                    break;
+                Rack.NithModuleEyeTracker.SensorBehaviors.Remove(behavior);
+            }
 
-                case InteractionMappings.Breath:
-                    //Rack.NithModuleSensor.SensorBehaviors.Add(new NithSensorBehaviorPressurePlay(NithParameters.breath_press, Rack.UserSettings.SensorIntensityBreath, Rack.UserSettings.SensorIntensityBreath * 1.5f));
-                    break;
-
-                case InteractionMappings.Teeth:
-                    //Rack.NithModuleSensor.SensorBehaviors.Add(new NithSensorBehaviorPressurePlay(NithParameters.teeth_press, Rack.UserSettings.SensorIntensityTeeth, Rack.UserSettings.SensorIntensityTeeth * 1.5f));
-                    break;
-
-                case InteractionMappings.Keyboard:
-                    break;
-
-                case InteractionMappings.Mouth:
-                    Rack.NithModuleWebcam.SensorBehaviors.Add(new NithSensorBehaviorMouthAperture(Rack.UserSettings.SensorIntensityMouth));
-                    break;
-
-                case InteractionMappings.HeadBow:
+            switch (Rack.UserSettings.HeadTrackingSource)
+            {
+                case HeadTrackingSources.Webcam:
+                    Rack.Behavior_HeadBow.Sensitivity = 1f;
                     Rack.NithModuleWebcam.SensorBehaviors.Add(new WriteToConsoleBehavior());
-                    // Rack.NithModuleWebcam.SensorBehaviors.Add(new NITHbehavior_headViolinBow_yawAndBend());
-                    Rack.NithModuleEyeTracker.SensorBehaviors.Add(new NITHbehavior_headViolinBow_yawAndBend(operationMode: NITHbehavior_headViolinBow_yawAndBend.YawAndBendOperationMode.Modulation));
+                    Rack.NithModuleWebcam.SensorBehaviors.Add(Rack.Behavior_HeadBow);
+                    break;
+                case HeadTrackingSources.EyeTracker:
+                    Rack.Behavior_HeadBow.Sensitivity = 1f;
+                    Rack.NithModuleEyeTracker.SensorBehaviors.Add(new WriteToConsoleBehavior());
+                    Rack.NithModuleEyeTracker.SensorBehaviors.Add(Rack.Behavior_HeadBow);
+                    break;
+                case HeadTrackingSources.Phone:
+                    Rack.Behavior_HeadBow.Sensitivity = 1f;
+                    Rack.NithModulePhone.SensorBehaviors.Add(new WriteToConsoleBehavior());
+                    Rack.NithModulePhone.SensorBehaviors.Add(Rack.Behavior_HeadBow);
                     break;
             }
         }
@@ -812,33 +543,14 @@ namespace HeadBower
                 // Invia una vibrazione di test forte e lunga che sarà facilmente riconoscibile
                 string testCommand = "VIB:500:255";
 
-                Console.WriteLine($"Invio vibrazione di test: {testCommand}");
-
                 if (Rack.NithSenderPhone != null && Rack.UDPsenderPhone != null)
                 {
-                    // Verifica che l'IP sia corretto
-                    Console.WriteLine($"Invio a: {Rack.UDPsenderPhone.IpAddress}:{Rack.UDPsenderPhone.Port}");
                     Rack.NithSenderPhone.SendData(testCommand);
-                    Console.WriteLine("Comando inviato!");
-                }
-                else
-                {
-                    Console.WriteLine("Errore: NithSenderPhone o UDPsenderPhone non inizializzato");
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Errore invio test: {ex.Message}");
-            }
-        }
-
-        private void BtnMouthAperture_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.Mouth;
-                ChangeMapping();
-                UpdateGUIVisuals();
+                // Silent failure
             }
         }
 
@@ -864,8 +576,38 @@ namespace HeadBower
         {
             if (InstrumentStarted)
             {
-                Rack.UserSettings.InteractionMethod = InteractionMappings.HeadBow;
-                ChangeMapping();
+                Rack.UserSettings.InteractionMapping = InteractionMappings.HeadBow;
+                UpdateHeadTrackingSource();
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnEyeTracker_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.EyeTracker;
+                UpdateHeadTrackingSource();
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnWebcam_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.Webcam;
+                UpdateHeadTrackingSource();
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnPhone_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.Phone;
+                UpdateHeadTrackingSource();
                 UpdateGUIVisuals();
             }
         }
@@ -906,6 +648,31 @@ namespace HeadBower
             }
         }
 
+        private void btnCalibrateHeadTracker_Click(object sender, RoutedEventArgs e)
+        {
+            Rack.EyeTrackerHeadTrackerCalibrator.SetCenterToCurrentPosition();
+            Rack.WebcamHeadTrackerCalibrator.SetCenterToCurrentPosition();
+        }
+
+        private void btnReconnect_Click(object sender, RoutedEventArgs e)
+        {
+            Rack.UDPreceiverEyeTracker.Disconnect();
+            Rack.UDPreceiverWebcam.Disconnect();
+            Rack.UDPreceiverPhone.Disconnect();
+            ////Rack.USBreceiverHeadTracker.Disconnect();
+
+            //// Aggiornare l'IP anche durante la riconnessione
+            //if (Rack.UDPsenderPhone != null)
+            //{
+            //    Rack.UDPsenderPhone.SetIpAddress(txtIPAddress.Text);
+            //}
+
+            Rack.UDPreceiverWebcam.Connect();
+            Rack.UDPreceiverEyeTracker.Connect();
+            Rack.UDPreceiverPhone.Connect();
+            //Rack.USBreceiverHeadTracker.Connect(SensorPort);
+        }
+
         private void btnSetIP_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted && Rack.UDPsenderPhone != null)
@@ -914,7 +681,7 @@ namespace HeadBower
                 {
                     // IP valido
                     txtIPAddress.Background = Brushes.LightGreen;
- 
+
                 }
                 else
                 {
@@ -934,33 +701,35 @@ namespace HeadBower
             }
         }
 
-        private void btnReconnect_Click(object sender, RoutedEventArgs e)
-        {
-            //Rack.UDPreceiverEyeTracker.Disconnect();
-            Rack.UDPreceiverWebcam.Disconnect();
-            //Rack.UDPreceiverPhone.Disconnect();
-            ////Rack.USBreceiverHeadTracker.Disconnect();
-
-            //// Aggiornare l'IP anche durante la riconnessione
-            //if (Rack.UDPsenderPhone != null)
-            //{
-            //    Rack.UDPsenderPhone.SetIpAddress(txtIPAddress.Text);
-            //}
-
-            Rack.UDPreceiverWebcam.Connect();
-            //Rack.UDPreceiverEyeTracker.Connect();
-            //Rack.UDPreceiverPhone.Connect();
-            //Rack.USBreceiverHeadTracker.Connect(SensorPort);
-        }
-
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
             SendTestVibration();
         }
 
-        private void btnCalibrateHeadTracker_Click(object sender, RoutedEventArgs e)
+        private void BtnSensingIntensityMinus_OnClick(object sender, RoutedEventArgs e)
         {
-            Rack.ETheadTrackerCalibrator.SetCenterToCurrentPosition();
+            switch (Rack.UserSettings.InteractionMapping)
+            {
+                case InteractionMappings.HeadBow:
+                    Rack.UserSettings.SensorIntensityHead -= 0.1f;
+                    break;
+            }
+
+            UpdateHeadTrackingSource();
+            UpdateGUIVisuals();
+        }
+
+        private void BtnSensingIntensityPlus_OnClick(object sender, RoutedEventArgs e)
+        {
+            switch (Rack.UserSettings.InteractionMapping)
+            {
+                case InteractionMappings.HeadBow:
+                    Rack.UserSettings.SensorIntensityHead += 0.1f;
+                    break;
+            }
+
+            UpdateHeadTrackingSource();
+            UpdateGUIVisuals();
         }
     }
 }
