@@ -63,6 +63,29 @@ namespace HeadBower.Modules
 
         }
 
-        
+        /// <summary>
+        /// Notify the rendering module that the phone IP changed and update the UI accordingly.
+        /// </summary>
+        /// <param name="ip">The new phone IP address.</param>
+        public void NotifyPhoneIpChanged(string ip)
+        {
+            if (InstrumentWindow == null)
+            {
+                return;
+            }
+
+            // Ensure UI update runs on UI thread
+            InstrumentWindow.Dispatcher.BeginInvoke(() =>
+            {
+                try
+                {
+                    InstrumentWindow.UpdatePhoneIpText(ip);
+                }
+                catch
+                {
+                    // Silent failure to avoid crashing rendering thread
+                }
+            });
+        }
     }
 }

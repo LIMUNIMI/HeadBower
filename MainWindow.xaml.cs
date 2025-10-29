@@ -652,6 +652,12 @@ namespace HeadBower
         {
             Rack.EyeTrackerHeadTrackerCalibrator.SetCenterToCurrentPosition();
             Rack.WebcamHeadTrackerCalibrator.SetCenterToCurrentPosition();
+
+            // Also calibrate phone head tracker if available
+            if (Rack.PhoneHeadTrackerCalibrator != null)
+            {
+                Rack.PhoneHeadTrackerCalibrator.SetCenterToCurrentPosition();
+            }
         }
 
         private void btnReconnect_Click(object sender, RoutedEventArgs e)
@@ -730,6 +736,33 @@ namespace HeadBower
 
             UpdateHeadTrackingSource();
             UpdateGUIVisuals();
+        }
+
+        /// <summary>
+        /// Update the phone IP textbox from other threads via dispatcher.
+        /// Called by RenderingModule.NotifyPhoneIpChanged.
+        /// </summary>
+        /// <param name="ip">New IP address to display.</param>
+        public void UpdatePhoneIpText(string ip)
+        {
+            try
+            {
+                // Ensure this runs on UI thread
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.BeginInvoke(() => UpdatePhoneIpText(ip));
+                    return;
+                }
+
+                if (txtIPAddress != null)
+                {
+                    txtIPAddress.Text = ip;
+                }
+            }
+            catch
+            {
+                // Silent failure
+            }
         }
     }
 }

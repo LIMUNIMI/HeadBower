@@ -247,7 +247,7 @@
         </TabControl>
 
         <!-- SETTINGS panel -->
-        <Border Name="brdSettings" Grid.Row="1" HorizontalAlignment="Left" Width="760" Height="Auto" Margin="5,5,5,5" CornerRadius="10" Visibility="Visible">
+        <Border Name="brdSettings" Grid.Row="1" HorizontalAlignment="Left" Width="1100" Height="Auto" Margin="5,5,5,5" CornerRadius="10" Visibility="Visible">
             <Border.Background>
                 <ImageBrush ImageSource="Images/Backgrounds/LightWood.jpg" TileMode="Tile" />
             </Border.Background>
@@ -255,9 +255,10 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" />
                     <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Left Stackpanel -->
+                <!-- Left Column: Port and Sensor Settings -->
                 <StackPanel Grid.Column="0" Orientation="Vertical" Margin="5,5,5,5">
 
                     <!-- Midi port selector -->
@@ -289,7 +290,7 @@
                             <TextBlock Name="txtSensorPort" Text="COM" Style="{StaticResource LCDText}">
                             </TextBlock>
                         </Border>
-                        <Button Grid.Column="2" Name="btnSensorPortPlus" Content="⮞" Click="BtnSensorPortPlus_Click" Style="{StaticResource DWood}" HorizontalAlignment="Left" Margin="5,5,0,5" Width="115" />
+                        <Button Grid.Column="2" Name="btnSensorPortPlus" Content="⮞" Click="BtnSensorPortPlus_Click" Style="{StaticResource DWood}" />
                     </Grid>
 
                     <!-- Sensing intensity -->
@@ -305,7 +306,7 @@
                             <TextBlock Name="txtSensingIntensity" Text="1.0" Style="{StaticResource LCDText}">
                             </TextBlock>
                         </Border>
-                        <Button Grid.Column="2" Name="btnSensingIntensityPlus" Content="⮞" Click="BtnSensingIntensityPlus_OnClick"  Style="{StaticResource DWood}" HorizontalAlignment="Left" Margin="5,5,0,5" Width="115" />
+                        <Button Grid.Column="2" Name="btnSensingIntensityPlus" Content="⮞" Click="BtnSensingIntensityPlus_OnClick"  Style="{StaticResource DWood}" />
                     </Grid>
 
                     <!-- Root note selector -->
@@ -330,18 +331,16 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="1" Style="{StaticResource LCDBorder}"/>
                     </Grid>
-                    <Border Style="{StaticResource BlackBorder}" Canvas.Left="525" Canvas.Top="70" Height="197" Width="232" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Border Style="{StaticResource BlackBorder}" Height="197" Width="232" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <ScrollViewer x:Name="scrConsole" VerticalScrollBarVisibility="Auto">
                             <TextBlock x:Name="txtConsole" Style="{StaticResource WhiteText}" Text="txtMiniConsoleTest" TextWrapping="Wrap"/>
                         </ScrollViewer>
                     </Border>
-
-
                 </StackPanel>
 
-                <!-- Right Stackpanel -->
+                <!-- Middle Column: Interaction Settings -->
                 <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5,5,5,5">
-                    <!-- ============ Switchable settings -->
+                    <!-- Switchable settings -->
                     <Label Content="Interaction settings"/>
                     <UniformGrid Columns="2" Rows="3">
 
@@ -355,8 +354,6 @@
 
                         <!-- Sharp notes -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
-
-
 
                         <!-- Slide play -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
@@ -384,7 +381,10 @@
                             </StackPanel>
                         </Button>
                     </UniformGrid>
+                </StackPanel>
 
+                <!-- Right Column: Head Tracking and Toolkit -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" Margin="5,5,5,5">
                     <!-- Head tracking source selector -->
                     <Label Content="Head tracking source" />
                     <UniformGrid Columns="2" Rows="1">
@@ -408,13 +408,19 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Toolkit section - with Reconnect button -->
-                    <Label Content="Toolkit" Margin="0,10,0,0" />
-                    <Button Name="btnReconnect" Content="Reconnect" Click="btnReconnect_Click" Style="{StaticResource DWood}" Margin="0,5,0,0" />
+                    <!-- Toolkit section -->
+                    <Label Content="Tools" Margin="0,10,0,0" />
                     <Label Content="Local IP Address" />
                     <TextBlock Name="txtLocalIP" Foreground="White" Text="Retrieving..." Margin="5,0,5,5" />
+                    
+                    <!-- Reconnect and Test buttons in same row -->
+                    <UniformGrid Columns="2" Rows="1" Margin="0,5,0,0">
+                        <Button Name="btnReconnect" Content="Reconnect" Click="btnReconnect_Click" Style="{StaticResource DWood}" />
+                        <Button Name="btnTest" Content="Test vibration" Click="btnTest_Click" Style="{StaticResource DWood}" />
+                    </UniformGrid>
+                    
                     <!-- Phone IP Address section -->
-                    <StackPanel Orientation="Vertical" Margin="0,10,0,0">
+                    <StackPanel Orientation="Vertical" Margin="0,5,0,0">
                         <Label Content="Phone IP Address" />
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -424,7 +430,6 @@
                             <TextBox Name="txtIPAddress" Grid.Column="0" Text="192.168.178.28" Margin="0,0,5,0" VerticalContentAlignment="Center" />
                             <Button Name="btnSetIP" Grid.Column="1" Content="Apply" Click="btnSetIP_Click" Style="{StaticResource DWood}" />
                         </Grid>
-                        <Button Name="btnTest" Content="Test" Click="btnTest_Click" Style="{StaticResource DWood}"></Button>
                     </StackPanel>
                 </StackPanel>
             </Grid>

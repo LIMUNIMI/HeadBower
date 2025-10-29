@@ -26,10 +26,10 @@ namespace HeadBower.Behaviors.HeadBow
         // Sensitivity property
         public float Sensitivity { get; set; } = 1.0f;
 
+        // Require only the position/pitch values; velocity or acceleration are optional
         private readonly List<NithParameters> requiredParams = new List<NithParameters>
         {
             NithParameters.head_pos_pitch,
-            NithParameters.head_vel_yaw,
             NithParameters.head_pos_yaw
         };
 
@@ -43,7 +43,7 @@ namespace HeadBower.Behaviors.HeadBow
         private const double PITCH_BEND_THRESHOLD = 15.0; // Minimum threshold to start applying pitch bend
 
         // Filters and mappers
-        // NOTE: yaw velocity filtering removed - use raw values from sensor
+        // NOTE: yaw velocity filtering removed - use raw values from sensor (or acceleration)
         private readonly SegmentMapper _yawVelMapper = new SegmentMapper(1, 10, 1, 127); // Modified to start mapping from threshold value
         private readonly DoubleFilterMAexpDecaying _pitchPosFilter = new DoubleFilterMAexpDecaying(0.9f);
         private readonly DoubleFilterMAexpDecaying _yawPosFilter = new DoubleFilterMAexpDecaying(0.9f);
@@ -77,7 +77,20 @@ namespace HeadBower.Behaviors.HeadBow
             if (nithData.ContainsParameters(requiredParams))
             {
                 // 1. Get values from sensors
-                double rawYawVel = nithData.GetParameterValue(NithParameters.head_vel_yaw).Value.ValueAsDouble;
+                // Prefer acceleration if present (produced by phone wrapper), otherwise use velocity if available
+                double rawYawMotion = 0; // can be acceleration or velocity depending on what is provided
+                bool usingAcceleration = false;
+
+                if (nithData.ContainsParameter(NithParameters.head_acc_yaw))
+                {
+                    rawYawMotion = nithData.GetParameterValue(NithParameters.head_acc_yaw).Value.ValueAsDouble;
+                    usingAcceleration = true;
+                }
+                else if (nithData.ContainsParameter(NithParameters.head_vel_yaw))
+                {
+                    rawYawMotion = nithData.GetParameterValue(NithParameters.head_vel_yaw).Value.ValueAsDouble;
+                }
+
                 double rawPitchPos = nithData.GetParameterValue(NithParameters.head_pos_pitch).Value.ValueAsDouble;
                 double rawYawPos = nithData.GetParameterValue(NithParameters.head_pos_yaw).Value.ValueAsDouble;
 
@@ -86,11 +99,11 @@ namespace HeadBower.Behaviors.HeadBow
 
                 // 2. Determine direction and update state
                 _previousDirection = _currentDirection;
-                _currentDirection = Math.Sign(rawYawVel);
+                _currentDirection = Math.Sign(rawYawMotion);
                 bool isDirectionChanged = _previousDirection != 0 && _currentDirection != 0 && _previousDirection != _currentDirection;
 
-                // 3. Use raw yaw velocity magnitude (no filtering) and still filter positions
-                _yawMagnitude = Math.Abs(rawYawVel);
+                // 3. Use raw yaw motion magnitude (acc or vel) and still filter positions
+                _yawMagnitude = Math.Abs(rawYawMotion);
                 _yawPosFilter.Push(rawYawPos);
                 _filteredYawPos = _yawPosFilter.Pull();
 
@@ -258,4 +271,5 @@ namespace HeadBower.Behaviors.HeadBow
                 // Silent failure - no debug output
             }
         }
-    }}
+    }
+}

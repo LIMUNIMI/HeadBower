@@ -10,6 +10,7 @@ using NITHemulation.Modules.Mouse;
 using NITHlibrary.Nith.Module;
 using NITHlibrary.Nith.Preprocessors;
 using NITHlibrary.Tools.Ports;
+using NITHlibrary.Tools.Ports.Discovery;
 using NITHlibrary.Tools.Senders;
 
 namespace HeadBower.Modules
@@ -56,5 +57,10 @@ namespace HeadBower.Modules
         public static NithPreprocessor_HeadTrackerCalibrator EyeTrackerHeadTrackerCalibrator { get; set; }
 
         public static NithPreprocessor_HeadTrackerCalibrator WebcamHeadTrackerCalibrator { get; set; }
+
+        // Add phone calibrator so HTcal button can calibrate phone like other sensors
+        public static NithPreprocessor_HeadTrackerCalibrator PhoneHeadTrackerCalibrator { get; set; }
+
+        public static NithDeviceDiscoveryService NithDeviceDiscoveryService { get; set; }
     }
 }

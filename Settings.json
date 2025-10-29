@@ -1,0 +1,21 @@
+{
+  "BlinkSelectScaleMode": 0,
+  "EllipseRadius": 23,
+  "HighlightRadius": 65,
+  "HighlightStrokeDim": 5,
+  "HorizontalSpacer": 200,
+  "InteractionMapping": 0,
+  "LineThickness": 3,
+  "MIDIPort": 1,
+  "ModulationControlMode": 1,
+  "NoteNamesVisualized": false,
+  "OccluderOffset": 35,
+  "RootNote": 0,
+  "ScaleCode": 1,
+  "SensorIntensityHead": 1,
+  "HeadTrackingSource": 0,
+  "SensorPort": 4,
+  "SharpNotesMode": 0,
+  "SlidePlayMode": 0,
+  "VerticalSpacer": -100
+}
