@@ -19,6 +19,19 @@
         Off
     }
 
+    public enum ModulationControlSources
+    {
+        HeadPitch,
+        MouthAperture,
+        HeadRoll
+    }
+
+    public enum BowPressureControlSources
+    {
+        HeadPitch,
+        MouthAperture
+    }
+
     public enum _SharpNotesModes
     {
         On,

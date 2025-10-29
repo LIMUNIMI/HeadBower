@@ -117,8 +117,26 @@ namespace HeadBower.Visuals
                 double btnWidth = currentButton.ActualWidth;
                 double btnHeight = currentButton.ActualHeight;
 
-                // Posiziona l'indicatore dell'arco (da -1 a 1) mappandolo in orizzontale
-                double bowX = ((mapping.BowPosition + 1) / 2) * btnWidth;
+                // Posiziona l'indicatore dell'arco (bow indicator)
+                // In acceleration mode, use HeadYawMotion instead of BowPosition
+                double bowDisplayValue;
+                if (mapping.UsingAccelerationMode)
+                {
+                    // Map acceleration/velocity magnitude to horizontal position
+                    // Range: motion magnitude typically 0-20, map to -1 to 1
+                    double motionMagnitude = Math.Abs(mapping.HeadYawMotion);
+                    double normalizedMotion = Math.Min(motionMagnitude / 10.0, 1.0); // Scale to 0-1
+                    
+                    // Show direction: negative motion = left, positive = right
+                    bowDisplayValue = mapping.HeadYawMotion >= 0 ? normalizedMotion : -normalizedMotion;
+                }
+                else
+                {
+                    // Use position-based bow position (for velocity-based sensors)
+                    bowDisplayValue = mapping.BowPosition;
+                }
+                
+                double bowX = ((bowDisplayValue + 1) / 2) * btnWidth;
                 double bowY = btnHeight / 2;
                 Canvas.SetLeft(bowIndicator, btnPosition.X + bowX - bowIndicator.Width / 2);
                 Canvas.SetTop(bowIndicator, btnPosition.Y + bowY - bowIndicator.Height / 2);

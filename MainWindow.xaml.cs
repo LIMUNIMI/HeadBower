@@ -155,6 +155,51 @@ namespace HeadBower
             }
         }
 
+        private void btnModSourcePitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadPitch;
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnModSourceMouth_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.MouthAperture;
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnModSourceRoll_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadRoll;
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnBowPressureSourcePitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.HeadPitch;
+                UpdateGUIVisuals();
+            }
+        }
+
+        private void btnBowPressureSourceMouth_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.MouthAperture;
+                UpdateGUIVisuals();
+            }
+        }
+
         private void btnModulationControlSwitch_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
@@ -363,6 +408,16 @@ namespace HeadBower
             indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;
             indToggleEyeTracker.Background = Rack.GazeToMouse.Enabled ? ActiveBrush : BlankBrush;
             indSettings.Background = IsSettingsShown ? ActiveBrush : BlankBrush;
+            
+            // Modulation source indicators
+            indModSourcePitch.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch ? ActiveBrush : BlankBrush;
+            indModSourceMouth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+            indModSourceRoll.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadRoll ? ActiveBrush : BlankBrush;
+            
+            // Bow pressure source indicators
+            indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
+            indBowPressureSourceMouth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+            
             //indNoteNames.Background = Rack.NetytarDmiBox.NetytarSurface.NoteNamesVisualized ? ActiveBrush : BlankBrush;
 
             /* MIDI */
@@ -377,7 +432,7 @@ namespace HeadBower
             switch (Rack.UserSettings.InteractionMapping)
             {
                 case InteractionMappings.HeadBow:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F1");
+                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F0");
                     break;
 
                 default:
@@ -516,17 +571,17 @@ namespace HeadBower
             switch (Rack.UserSettings.HeadTrackingSource)
             {
                 case HeadTrackingSources.Webcam:
-                    Rack.Behavior_HeadBow.Sensitivity = 1f;
+                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
                     Rack.NithModuleWebcam.SensorBehaviors.Add(new WriteToConsoleBehavior());
                     Rack.NithModuleWebcam.SensorBehaviors.Add(Rack.Behavior_HeadBow);
                     break;
                 case HeadTrackingSources.EyeTracker:
-                    Rack.Behavior_HeadBow.Sensitivity = 1f;
+                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
                     Rack.NithModuleEyeTracker.SensorBehaviors.Add(new WriteToConsoleBehavior());
                     Rack.NithModuleEyeTracker.SensorBehaviors.Add(Rack.Behavior_HeadBow);
                     break;
                 case HeadTrackingSources.Phone:
-                    Rack.Behavior_HeadBow.Sensitivity = 1f;
+                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
                     Rack.NithModulePhone.SensorBehaviors.Add(new WriteToConsoleBehavior());
                     Rack.NithModulePhone.SensorBehaviors.Add(Rack.Behavior_HeadBow);
                     break;
@@ -717,7 +772,7 @@ namespace HeadBower
             switch (Rack.UserSettings.InteractionMapping)
             {
                 case InteractionMappings.HeadBow:
-                    Rack.UserSettings.SensorIntensityHead -= 0.1f;
+                    Rack.UserSettings.SensorIntensityHead -= 1f;
                     break;
             }
 
@@ -730,7 +785,7 @@ namespace HeadBower
             switch (Rack.UserSettings.InteractionMapping)
             {
                 case InteractionMappings.HeadBow:
-                    Rack.UserSettings.SensorIntensityHead += 0.1f;
+                    Rack.UserSettings.SensorIntensityHead += 1f;
                     break;
             }
 

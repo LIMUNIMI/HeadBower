@@ -67,9 +67,9 @@ namespace HeadBower.Modules
             Rack.WebcamHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
             Rack.NithModuleWebcam.Preprocessors.Add(Rack.WebcamHeadTrackerCalibrator);
             // Calculate velocity first (before smoothing) to match eye tracker behavior
-            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_HeadVelocityCalculator(
+            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_HeadAccelerationCalculator(
                 filterAlpha: 0.2f,
-                velocitySensitivity: 0.2f));
+                accelerationSensitivity: 0.2f));
             Rack.UDPreceiverWebcam = new UDPreceiver(20100);
             Rack.UDPreceiverWebcam.MaxSamplesPerSecond = 30; // Webcam is slower
             Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleWebcam);
@@ -88,7 +88,7 @@ namespace HeadBower.Modules
             Rack.UDPreceiverEyeTracker.MaxSamplesPerSecond = 100; // Eye tracker is fastest
             Rack.UDPreceiverEyeTracker.Listeners.Add(Rack.NithModuleEyeTracker);
             Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadTrackerCalibrator());
-            Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadVelocityCalculator());
+            Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadAccelerationCalculator());
             Rack.EyeTrackerHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
             Rack.NithModuleEyeTracker.Preprocessors.Add(Rack.EyeTrackerHeadTrackerCalibrator);
 
@@ -98,10 +98,6 @@ namespace HeadBower.Modules
             Rack.UDPreceiverPhone = new UDPreceiver((int)NithWrappersReceiverPorts.NITHphoneWrapper);
             Rack.UDPreceiverPhone.MaxSamplesPerSecond = 60; // Limit to 60 Hz - prevent flooding
             Rack.NithModulePhone = new NithModule();
-            // Add preprocessors commonly used for head-tracking data so behaviors receive velocity params
-            Rack.NithModulePhone.Preprocessors.Add(new NithPreprocessor_HeadVelocityCalculator(
-                filterAlpha: 0.2f,
-                velocitySensitivity: 0.2f));
             // Add phone head-tracker calibrator so UI can calibrate phone head pose like other sensors
             Rack.PhoneHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
             Rack.NithModulePhone.Preprocessors.Add(Rack.PhoneHeadTrackerCalibrator);

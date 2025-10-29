@@ -19,6 +19,8 @@ namespace HeadBower.Settings
             SharpNotesMode = _SharpNotesModes.On;
             BlinkSelectScaleMode = _BlinkSelectScaleMode.On;
             ModulationControlMode = _ModulationControlModes.Off;
+            ModulationControlSource = ModulationControlSources.HeadPitch;
+            BowPressureControlSource = BowPressureControlSources.HeadPitch;
             InteractionMapping = InteractionMappings.HeadBow;
             SlidePlayMode = _SlidePlayModes.On;
             SensorPort = 4;
@@ -26,7 +28,7 @@ namespace HeadBower.Settings
             RootNote = AbsNotes.C;
             ScaleCode = ScaleCodes.maj;
             NoteNamesVisualized = false;
-            SensorIntensityHead = 1f;
+            SensorIntensityHead = 10f;
             HeadTrackingSource = HeadTrackingSources.EyeTracker;
         }
     }

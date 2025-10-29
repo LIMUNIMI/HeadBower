@@ -44,6 +44,8 @@ namespace HeadBower.Modules
         public double PitchBendThreshold { get; set; } = 10.0; // Soglia per il pitch bend
         public bool IsPlayingViolin { get; set; } = false; // Se stiamo usando il violino
         public Button CurrentButton { get; set; } = null; // Pulsante attualmente selezionato
+        public bool UsingAccelerationMode { get; set; } = false; // True when using acceleration (phone), false when using velocity
+        public double HeadYawMotion { get; set; } = 0; // Stores the yaw motion value (acceleration or velocity) for display
 
 
         private bool blow = false;

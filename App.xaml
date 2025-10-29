@@ -154,6 +154,19 @@
             </Setter>
         </Style>
 
+        <!-- DARKWOOD RIGHT BUTTON-->
+        <Style TargetType="Button" x:Key="DWoodRight" BasedOn="{StaticResource DWood}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- LCD TEXT -->
         <Style TargetType="TextBlock" x:Key="LCDText">
             <Setter Property="Background" Value="Black" />

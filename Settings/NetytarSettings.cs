@@ -19,6 +19,8 @@ namespace HeadBower.Settings
         private int _lineThickness;
         private int _midiPort;
         private _ModulationControlModes _modulationControlMode;
+        private ModulationControlSources _modulationControlSource;
+        private BowPressureControlSources _bowPressureControlSource;
         private bool _noteNamesVisualized;
         private int _occluderOffset;
         private AbsNotes _rootNote;
@@ -57,6 +59,10 @@ namespace HeadBower.Settings
             VerticalSpacer = verticalSpacer;
             SensorIntensityHead = sensorIntensityHead;
             HeadTrackingSource = headTrackingSource;
+            
+            // Initialize new properties with defaults
+            ModulationControlSource = ModulationControlSources.HeadPitch;
+            BowPressureControlSource = BowPressureControlSources.HeadPitch;
         }
 
         public _BlinkSelectScaleMode BlinkSelectScaleMode
@@ -113,6 +119,18 @@ namespace HeadBower.Settings
             set => SetProperty(ref _modulationControlMode, value);
         }
 
+        public ModulationControlSources ModulationControlSource
+        {
+            get => _modulationControlSource;
+            set => SetProperty(ref _modulationControlSource, value);
+        }
+
+        public BowPressureControlSources BowPressureControlSource
+        {
+            get => _bowPressureControlSource;
+            set => SetProperty(ref _bowPressureControlSource, value);
+        }
+
         public bool NoteNamesVisualized
         {
             get => _noteNamesVisualized;
@@ -140,7 +158,7 @@ namespace HeadBower.Settings
         public float SensorIntensityHead
         {
             get => _sensorIntensityHead;
-            set => SetProperty(ref _sensorIntensityHead, Math.Clamp(value, 0.1f, 10.0f));
+            set => SetProperty(ref _sensorIntensityHead, Math.Max(value, 0.1f));
         }
 
         public HeadTrackingSources HeadTrackingSource
