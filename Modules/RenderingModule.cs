@@ -1,4 +1,5 @@
 ﻿using HeadBower;
+using HeadBower.Visuals;
 using NITHdmis.Music;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,26 +9,41 @@ using System.Windows.Threading;
 namespace HeadBower.Modules
 {
     /// <summary>
-    /// The RenderingModule class is responsible for managing the rendering of graphics in the application.
-    /// It utilizes a DispatcherTimer to repeatedly trigger rendering operations at specified intervals.
+    /// The RenderingModule class is responsible for ALL rendering and UI updates in the application.
+    /// It runs a unified update loop at 60fps that polls state and updates all UI elements.
     /// </summary>
     public class RenderingModule : IDisposable
     {
+        private readonly SolidColorBrush ActiveBrush = new SolidColorBrush(Colors.LightGreen);
+        private readonly SolidColorBrush BlankBrush = new SolidColorBrush(Colors.Black);
+        private readonly SolidColorBrush WarningBrush = new SolidColorBrush(Colors.DarkRed);
+
+        private DispatcherTimer DispatcherTimer { get; set; }
+        private MainWindow InstrumentWindow { get; set; }
+        private ViolinOverlayManager overlayManager; // Owns the violin overlay visualization
+
         /// <summary>
         /// Initializes a new instance of the RenderingModule class.
         /// </summary>
         /// <param name="instrumentWindow">The main window instance where rendering will take place.</param>
-        public RenderingModule(MainWindow instrumentWindow)
+        /// <param name="violinOverlayCanvas">The canvas to use for violin overlay (ViolinOverlayViolin or ViolinOverlayCircle)</param>
+        public RenderingModule(MainWindow instrumentWindow, Canvas violinOverlayCanvas)
         {
             InstrumentWindow = instrumentWindow;
+            overlayManager = new ViolinOverlayManager(violinOverlayCanvas);
+            
             DispatcherTimer = new DispatcherTimer();
             DispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 16); // ~60fps
             DispatcherTimer.Tick += DispatcherUpdate;
         }
 
-        private DispatcherTimer DispatcherTimer { get; set; }
-        private MainWindow InstrumentWindow { get; set; }
-        private bool _wasPlayingViolin = false;
+        /// <summary>
+        /// Switches the violin overlay to a different canvas (e.g., when switching between Circle/Violin layouts)
+        /// </summary>
+        public void SetViolinOverlayCanvas(Canvas newCanvas)
+        {
+            overlayManager = new ViolinOverlayManager(newCanvas);
+        }
 
         /// <summary>
         /// Releases the resources used by the RenderingModule.
@@ -55,16 +71,113 @@ namespace HeadBower.Modules
         }
 
         /// <summary>
-        /// This method is called every time the dispatcher timer is triggered to update graphics.
-        /// Place rendering instructions inside this method.
+        /// UNIFIED UPDATE LOOP - Called at 60fps to update ALL UI elements.
+        /// Replaces: UpdateTimedVisuals, UpdateGUIVisuals, CheckMidiPort, Update_SensorIntensityVisuals, PositionViolinOverlay, ReceiveBlowingChange, ReceiveNoteChange.
         /// </summary>
         private void DispatcherUpdate(object sender, EventArgs e)
         {
+            if (InstrumentWindow == null)
+            {
+                return;
+            }
 
+            try
+            {
+                // ============================================================
+                // TIMED VISUALS (updated every frame)
+                // ============================================================
+                
+                // Note information
+                InstrumentWindow.txtNoteName.Text = Rack.MappingModule.SelectedNote.ToStandardString();
+                InstrumentWindow.txtPitch.Text = Rack.MappingModule.SelectedNote.ToPitchValue().ToString();
+                
+                // Blowing status
+                InstrumentWindow.txtIsBlowing.Text = Rack.MappingModule.Blow ? "B" : "_";
+                
+                // Intensity indicator
+                InstrumentWindow.prbIntensity.Value = Rack.MappingModule.IntensityIndicator;
+
+                // Violin overlay positioning
+                if (Rack.MappingModule.CurrentButton != null)
+                {
+                    overlayManager?.UpdateOverlay(
+                        Rack.MappingModule.CurrentButton, 
+                        Rack.ViolinOverlayState.BowMotionIndicator, 
+                        Rack.ViolinOverlayState.PitchPosition, 
+                        Rack.ViolinOverlayState.PitchThreshold
+                    );
+                }
+                else if (overlayManager != null)
+                {
+                    overlayManager.overlayCanvas.Visibility = Visibility.Collapsed;
+                }
+
+                // ============================================================
+                // GUI VISUALS (settings indicators, text fields)
+                // ============================================================
+                
+                // TEXT FIELDS
+                InstrumentWindow.txtMIDIch.Text = "MP" + Rack.MidiModule.OutDevice.ToString();
+                InstrumentWindow.txtSensorPort.Text = "COM" + Rack.UserSettings.SensorPort.ToString();
+
+                // INTERACTION MODE INDICATORS
+                InstrumentWindow.indHeadBow.Background = Rack.UserSettings.InteractionMapping == InteractionMappings.HeadBow ? ActiveBrush : BlankBrush;
+                
+                // HEAD TRACKING SOURCE INDICATORS
+                InstrumentWindow.indEyeTracker.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.EyeTracker ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indWebcam.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Webcam ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indPhone.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Phone ? ActiveBrush : BlankBrush;
+                
+                // FEATURE TOGGLE INDICATORS
+                InstrumentWindow.indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indSlidePlay.Background = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indToggleCursor.Background = Rack.MappingModule.CursorHidden ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indToggleEyeTracker.Background = Rack.GazeToMouse.Enabled ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indSettings.Background = InstrumentWindow.IsSettingsShown ? ActiveBrush : BlankBrush;
+                
+                // MODULATION SOURCE INDICATORS
+                InstrumentWindow.indModSourcePitch.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indModSourceMouth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indModSourceRoll.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadRoll ? ActiveBrush : BlankBrush;
+                
+                // BOW PRESSURE SOURCE INDICATORS
+                InstrumentWindow.indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indBowPressureSourceMouth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+
+                // ============================================================
+                // MIDI PORT STATUS CHECK
+                // ============================================================
+                if (Rack.MidiModule.IsMidiOk())
+                {
+                    InstrumentWindow.txtMIDIch.Foreground = ActiveBrush;
+                }
+                else
+                {
+                    InstrumentWindow.txtMIDIch.Foreground = WarningBrush;
+                }
+
+                // ============================================================
+                // SENSOR INTENSITY VISUALS
+                // ============================================================
+                switch (Rack.UserSettings.InteractionMapping)
+                {
+                    case InteractionMappings.HeadBow:
+                        InstrumentWindow.txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F1");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch
+            {
+                // Ignore errors to prevent rendering loop crashes
+            }
         }
 
         /// <summary>
         /// Notify the rendering module that the phone IP changed and update the UI accordingly.
+        /// This is called from background threads (discovery service), so we ensure UI thread access.
         /// </summary>
         /// <param name="ip">The new phone IP address.</param>
         public void NotifyPhoneIpChanged(string ip)
@@ -79,7 +192,11 @@ namespace HeadBower.Modules
             {
                 try
                 {
-                    InstrumentWindow.UpdatePhoneIpText(ip);
+                    // Directly update the IP address textbox
+                    if (InstrumentWindow.txtIPAddress != null)
+                    {
+                        InstrumentWindow.txtIPAddress.Text = ip;
+                    }
                 }
                 catch
                 {

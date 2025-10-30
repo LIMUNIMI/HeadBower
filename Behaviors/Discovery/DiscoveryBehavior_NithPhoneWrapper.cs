@@ -135,9 +135,9 @@ namespace HeadBower.Behaviors.Discovery
             newReceiver.MaxSamplesPerSecond = 60; // Same settings as in DefaultSetup
 
             // Re-add NithModule listener
-            if (Modules.Rack.NithModulePhone != null)
+            if (Modules.Rack.NithModuleUnified != null)
             {
-                newReceiver.Listeners.Add(Modules.Rack.NithModulePhone);
+                newReceiver.Listeners.Add(Modules.Rack.NithModuleUnified);
             }
 
             // Connect and update Rack

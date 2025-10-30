@@ -7,7 +7,7 @@ using HeadBower.Modules;
 namespace HeadBower.Settings
 {
     [Serializable]
-    public class NetytarSettings : INotifyPropertyChanged
+    public class UserSettings : INotifyPropertyChanged
     {
         private float _sensorIntensityHead;
         private _BlinkSelectScaleMode _blinkSelectScaleMode;
@@ -30,15 +30,42 @@ namespace HeadBower.Settings
         private _SlidePlayModes _slidePlayMode;
         private int _verticalSpacer;
         private HeadTrackingSources _headTrackingSource;
+        private float _webcamSensitivity = 1f;
+        private float _phoneSensitivity = 20f;
+        private float _eyeTrackerSensitivity = 1f;
+        private double _pitchThreshold = 15.0;
+        private double _pitchRange = 50.0;
 
         [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public NetytarSettings()
+        public UserSettings()
         {
         }
 
-        public NetytarSettings(_BlinkSelectScaleMode blinkSelectScaleMode, int ellipseRadius, int highlightRadius, int highlightStrokeDim, int horizontalSpacer, int lineThickness, int midiPort, _ModulationControlModes modulationControlMode, InteractionMappings interactionMethod, bool noteNamesVisualized, int occluderOffset, AbsNotes rootNote, ScaleCodes scaleCode, int sensorPort, _SharpNotesModes sharpNotesMode, _SlidePlayModes slidePlayMode, int verticalSpacer, float sensorIntensityHead, HeadTrackingSources headTrackingSource)
+        public UserSettings(
+            _BlinkSelectScaleMode blinkSelectScaleMode, 
+            int ellipseRadius, 
+            int highlightRadius, 
+            int highlightStrokeDim, 
+            int horizontalSpacer, 
+            int lineThickness, 
+            int midiPort, 
+            _ModulationControlModes modulationControlMode, 
+            InteractionMappings interactionMethod, 
+            bool noteNamesVisualized, 
+            int occluderOffset, 
+            AbsNotes rootNote, 
+            ScaleCodes scaleCode, 
+            int sensorPort, 
+            _SharpNotesModes sharpNotesMode, 
+            _SlidePlayModes slidePlayMode, 
+            int verticalSpacer, 
+            float sensorIntensityHead, 
+            HeadTrackingSources headTrackingSource,
+            float webcamSensitivity = 1.0f,
+            float phoneSensitivity = 0.3f,
+            float eyeTrackerSensitivity = 2.0f)
         {
             BlinkSelectScaleMode = blinkSelectScaleMode;
             EllipseRadius = ellipseRadius;
@@ -59,6 +86,9 @@ namespace HeadBower.Settings
             VerticalSpacer = verticalSpacer;
             SensorIntensityHead = sensorIntensityHead;
             HeadTrackingSource = headTrackingSource;
+            WebcamSensitivity = webcamSensitivity;
+            PhoneSensitivity = phoneSensitivity;
+            EyeTrackerSensitivity = eyeTrackerSensitivity;
             
             // Initialize new properties with defaults
             ModulationControlSource = ModulationControlSources.HeadPitch;
@@ -167,6 +197,36 @@ namespace HeadBower.Settings
             set => SetProperty(ref _headTrackingSource, value);
         }
 
+        /// <summary>
+        /// Sensitivity multiplier for webcam head tracking data.
+        /// Applied to all head parameters (position, velocity, acceleration) from the webcam.
+        /// </summary>
+        public float WebcamSensitivity
+        {
+            get => _webcamSensitivity;
+            set => SetProperty(ref _webcamSensitivity, Math.Max(value, 0.01f));
+        }
+
+        /// <summary>
+        /// Sensitivity multiplier for phone head tracking data.
+        /// Applied to all head parameters (position, velocity, acceleration) from the phone.
+        /// </summary>
+        public float PhoneSensitivity
+        {
+            get => _phoneSensitivity;
+            set => SetProperty(ref _phoneSensitivity, Math.Max(value, 0.01f));
+        }
+
+        /// <summary>
+        /// Sensitivity multiplier for eye tracker head tracking data.
+        /// Applied to all head parameters (position, velocity, acceleration) from the eye tracker.
+        /// </summary>
+        public float EyeTrackerSensitivity
+        {
+            get => _eyeTrackerSensitivity;
+            set => SetProperty(ref _eyeTrackerSensitivity, Math.Max(value, 0.01f));
+        }
+
         public int SensorPort
         {
             get => _sensorPort;
@@ -189,6 +249,26 @@ namespace HeadBower.Settings
         {
             get => _verticalSpacer;
             set => SetProperty(ref _verticalSpacer, value);
+        }
+
+        /// <summary>
+        /// Pitch threshold for visual feedback yellow lines and musical control.
+        /// Values below this threshold don't trigger modulation/bow pressure.
+        /// </summary>
+        public double PitchThreshold
+        {
+            get => _pitchThreshold;
+            set => SetProperty(ref _pitchThreshold, Math.Max(value, 0.0));
+        }
+
+        /// <summary>
+        /// Maximum expected pitch deviation range for visual feedback normalization.
+        /// Used to scale the red rectangle position to fit within the button height.
+        /// </summary>
+        public double PitchRange
+        {
+            get => _pitchRange;
+            set => SetProperty(ref _pitchRange, Math.Max(value, 1.0));
         }
 
         protected void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)

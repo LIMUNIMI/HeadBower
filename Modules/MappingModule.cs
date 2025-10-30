@@ -1,6 +1,7 @@
 ﻿using System.Windows.Controls;
 using HeadBower.Surface;
 using NITHdmis.Music;
+using NITHlibrary.Nith.Internals;
 
 namespace HeadBower.Modules
 {
@@ -23,6 +24,63 @@ namespace HeadBower.Modules
             SelectedScale = StartingScale;
         }
 
+        // ============================================================================
+        // HEAD MOTION PARAMETER DEFINITIONS
+        // ============================================================================
+
+        /// <summary>
+        /// Parameters that represent head position data.
+        /// These are the base position values from any source (webcam, phone, eye tracker).
+        /// </summary>
+        public static readonly List<NithParameters> HeadPositionParameters = new()
+        {
+            NithParameters.head_pos_yaw,
+            NithParameters.head_pos_pitch,
+            NithParameters.head_pos_roll
+        };
+
+        /// <summary>
+        /// Parameters that represent head velocity data.
+        /// These are calculated from position changes or sent directly by sensors.
+        /// </summary>
+        public static readonly List<NithParameters> HeadVelocityParameters = new()
+        {
+            NithParameters.head_vel_yaw,
+            NithParameters.head_vel_pitch,
+            NithParameters.head_vel_roll
+        };
+
+        /// <summary>
+        /// Parameters that represent head acceleration data.
+        /// These are calculated from velocity changes.
+        /// </summary>
+        public static readonly List<NithParameters> HeadAccelerationParameters = new()
+        {
+            NithParameters.head_acc_yaw,
+            NithParameters.head_acc_pitch,
+            NithParameters.head_acc_roll
+        };
+
+        /// <summary>
+        /// All head motion parameters combined (position + velocity + acceleration).
+        /// Used for whitelisting all motion data from the selected source.
+        /// </summary>
+        public static readonly List<NithParameters> AllHeadMotionParameters = new()
+        {
+            // Position
+            NithParameters.head_pos_yaw,
+            NithParameters.head_pos_pitch,
+            NithParameters.head_pos_roll,
+            // Velocity
+            NithParameters.head_vel_yaw,
+            NithParameters.head_vel_pitch,
+            NithParameters.head_vel_roll,
+            // Acceleration
+            NithParameters.head_acc_yaw,
+            NithParameters.head_acc_pitch,
+            NithParameters.head_acc_roll
+        };
+
         public bool CursorHidden { get; set; } = false;
         public bool HasAButtonGaze { get => hasAButtonGaze; set => hasAButtonGaze = value; }
         public Button LastGazedButton { get => lastGazedButton; set => lastGazedButton = value; }
@@ -32,9 +90,7 @@ namespace HeadBower.Modules
         private Scale SelectedScale { get; set; }
         private Scale StartingScale { get; set; }
 
-        #region Switchable
 
-        #endregion Switchable
 
         #region Instrument logic
 
@@ -46,7 +102,6 @@ namespace HeadBower.Modules
         public Button CurrentButton { get; set; } = null; // Pulsante attualmente selezionato
         public bool UsingAccelerationMode { get; set; } = false; // True when using acceleration (phone), false when using velocity
         public double HeadYawMotion { get; set; } = 0; // Stores the yaw motion value (acceleration or velocity) for display
-
 
         private bool blow = false;
         private int modulation = 0;
@@ -233,62 +288,88 @@ namespace HeadBower.Modules
 
         #endregion Instrument logic
 
+        #region Head Tracking Source Selection
+
+        /// <summary>
+        /// Configures the parameter selector to whitelist head motion parameters from the selected source
+        /// and block them from all other sources.
+        /// </summary>
+        /// <param name="source">The head tracking source to enable</param>
+        public static void SelectHeadTrackingSource(HeadTrackingSources source)
+        {
+            // Clear all existing rules
+            Rack.ParameterSelector.ClearAllRules();
+
+            // Get the sensor name for this source
+            string selectedSensorName = GetSensorNameForSource(source);
+
+            // Whitelist all head motion parameters for the selected source
+            Rack.ParameterSelector.AddRulesList(selectedSensorName, AllHeadMotionParameters);
+
+            // Block head motion parameters from all OTHER sources
+            BlockHeadMotionFromOtherSources(source);
+
+            // Log configuration
+            LogSelectionConfiguration(source);
+        }
+
+        /// <summary>
+        /// Gets the sensor name that corresponds to a head tracking source.
+        /// </summary>
+        private static string GetSensorNameForSource(HeadTrackingSources source)
+        {
+            return source switch
+            {
+                HeadTrackingSources.Webcam => "NITHwebcamWrapper",
+                HeadTrackingSources.Phone => "NITHphoneWrapper",
+                HeadTrackingSources.EyeTracker => "NITHeyetrackerWrapper",
+                _ => throw new ArgumentException($"Unknown head tracking source: {source}")
+            };
+        }
+
+        /// <summary>
+        /// Blocks head motion parameters from all sources except the selected one.
+        /// This ensures only one source provides head motion data at a time.
+        /// </summary>
+        private static void BlockHeadMotionFromOtherSources(HeadTrackingSources selectedSource)
+        {
+            var allSources = new[]
+            {
+                (HeadTrackingSources.Webcam, "NITHwebcamWrapper"),
+                (HeadTrackingSources.Phone, "NITHphoneWrapper"),
+                (HeadTrackingSources.EyeTracker, "NITHeyetrackerWrapper")
+            };
+
+            foreach (var (source, sensorName) in allSources)
+            {
+                if (source != selectedSource)
+                {
+                    // In Whitelist mode, not adding rules = blocking all parameters
+                    // So we don't need to do anything for non-selected sources
+                    // They will be automatically blocked
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logs the current parameter selector configuration to console for debugging.
+        /// </summary>
+        private static void LogSelectionConfiguration(HeadTrackingSources source)
+        {
+            Console.WriteLine("\n=== HEAD TRACKING SOURCE SELECTION ===");
+            Console.WriteLine($"Selected Source: {source}");
+            Console.WriteLine(Rack.ParameterSelector.GetRulesSummary());
+            Console.WriteLine("=====================================\n");
+        }
+
+        #endregion Head Tracking Source Selection
 
         #region Shared values
 
-        private int accBaseX = 0;
-        private int accBaseY = 0;
-        private int accBaseZ = 0;
-        private int accX = 0;
-        private int accY = 0;
-        private int accZ = 0;
-        private double eyePosBaseX = 0;
-        private double eyePosBaseY = 0;
-        private double eyePosBaseZ = 0;
-        private int gyroBaseX = 0;
-        private int gyroBaseY = 0;
-        private int gyroBaseZ = 0;
-        private int gyroX = 0;
-        private int gyroY = 0;
-        private int gyroZ = 0;
-        public int AccBaseX { get => accBaseX; set => accBaseX = value; }
-        public int AccBaseY { get => accBaseY; set => accBaseY = value; }
-        public int AccBaseZ { get => accBaseZ; set => accBaseZ = value; }
-        public int AccCalibX { get => accX - GyroBaseX; }
-        public int AccCalibY { get => accY - GyroBaseY; }
-        public int AccCalibZ { get => accZ - GyroBaseZ; }
-        public int AccX { get => accX; set => accX = value; }
-        public int AccY { get => accY; set => accY = value; }
-        public int AccZ { get => accZ; set => accZ = value; }
-        public int GyroBaseX { get => gyroBaseX; set => gyroBaseX = value; }
-        public int GyroBaseY { get => gyroBaseY; set => gyroBaseY = value; }
-        public int GyroBaseZ { get => gyroBaseZ; set => gyroBaseZ = value; }
-        public int GyroCalibX { get => gyroX - GyroBaseX; }
-        public int GyroCalibY { get => gyroY - GyroBaseY; }
-        public int GyroCalibZ { get => gyroZ - GyroBaseZ; }
-        public int GyroX { get => gyroX; set => gyroX = value; }
-        public int GyroY { get => gyroY; set => gyroY = value; }
-        public int GyroZ { get => gyroZ; set => gyroZ = value; }
-        public double HeadPoseBaseX { get => eyePosBaseX; set => eyePosBaseX = value; }
-        public double HeadPoseBaseY { get => eyePosBaseY; set => eyePosBaseY = value; }
-        public double HeadPoseBaseZ { get => eyePosBaseZ; set => eyePosBaseZ = value; }
-        public double InputIndicatorValue { get; internal set; } = 0;
-        public double HeadYawPosition { get; internal set; }
         public Button CheckedButton { get; internal set; }
-
-        public void CalibrateAccBase()
-        {
-            Rack.MappingModule.accBaseX = accX;
-            Rack.MappingModule.accBaseY = accY;
-            Rack.MappingModule.accBaseZ = accZ;
-        }
-
-        public void CalibrateGyroBase()
-        {
-            Rack.MappingModule.gyroBaseX = gyroX;
-            Rack.MappingModule.gyroBaseY = gyroY;
-            Rack.MappingModule.gyroBaseZ = gyroZ;
-        }
+        public double IntensityIndicator { get; set; } = 0f;
+        public double HeadYawPosition { get; internal set; }
+        public int InputIndicatorValue { get; internal set; }
 
         #endregion Shared values
 

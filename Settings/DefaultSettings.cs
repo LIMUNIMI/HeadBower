@@ -5,7 +5,7 @@ using HeadBower.Modules;
 namespace HeadBower.Settings
 {
     [Serializable]
-    internal class DefaultSettings : NetytarSettings
+    internal class DefaultSettings : UserSettings
     {
         public DefaultSettings() : base()
         {
@@ -28,7 +28,7 @@ namespace HeadBower.Settings
             RootNote = AbsNotes.C;
             ScaleCode = ScaleCodes.maj;
             NoteNamesVisualized = false;
-            SensorIntensityHead = 10f;
+            SensorIntensityHead = 0.1f;
             HeadTrackingSource = HeadTrackingSources.EyeTracker;
         }
     }

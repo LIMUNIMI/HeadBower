@@ -27,9 +27,7 @@ namespace HeadBower
         private Scale lastScale = ScalesFactory.Cmaj;
         private DefaultSetup netytarSetup;
         private bool InstrumentStarted = false;
-        private DispatcherTimer updater;
         private double velocityBarMaxHeight = 0;
-        private ViolinOverlayManager overlayManager; // Gestore overlay per il violino
 
         public MainWindow()
         {
@@ -38,15 +36,6 @@ namespace HeadBower
             // Debugger
             TraceAdder.AddTrace();
             DataContext = this;
-
-            // GUI updater
-            updater = new DispatcherTimer();
-            updater.Interval = new TimeSpan(1000);
-            updater.Tick += UpdateTimedVisuals;
-            updater.Start();
-
-            // Inizialmente, imposta l'overlay per il layout Violin
-            overlayManager = new ViolinOverlayManager(ViolinOverlayViolin);
         }
 
         public bool IsSettingsShown { get; set; } = false;
@@ -64,24 +53,6 @@ namespace HeadBower
                 }
             }
         }
-
-        public void ReceiveBlowingChange()
-        {
-            if (Rack.MappingModule.Blow)
-            {
-                txtIsBlowing.Text = "B";
-            }
-            else
-            {
-                txtIsBlowing.Text = "_";
-            }
-        }
-
-        public void ReceiveNoteChange()
-        {
-            UpdateGUIVisuals();
-        }
-
 
         private void btnBlinkPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -101,8 +72,7 @@ namespace HeadBower
                         Rack.UserSettings.BlinkSelectScaleMode = _BlinkSelectScaleMode.Off;
                         break;
                 }
-
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -132,7 +102,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.MIDIPort--;
                 Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -142,7 +112,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.MIDIPort++;
                 Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -151,7 +121,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.ModulationControlMode = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? _ModulationControlModes.Off : _ModulationControlModes.On;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -160,7 +130,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadPitch;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -169,7 +139,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.ModulationControlSource = ModulationControlSources.MouthAperture;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -178,7 +148,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadRoll;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -187,7 +157,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.HeadPitch;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -196,7 +166,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.MouthAperture;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -205,7 +175,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.ModulationControlMode = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? _ModulationControlModes.Off : _ModulationControlModes.On;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -219,9 +189,8 @@ namespace HeadBower
             {
                 Rack.MappingModule.CursorHidden = !Rack.MappingModule.CursorHidden;
                 Cursor = Rack.MappingModule.CursorHidden ? System.Windows.Input.Cursors.None : System.Windows.Input.Cursors.Arrow;
+                // Rendering loop handles UI update
             }
-
-            UpdateGUIVisuals();
         }
 
         private void BtnScroll_Click(object sender, RoutedEventArgs e)
@@ -261,8 +230,7 @@ namespace HeadBower
                     brdSettings.Visibility = Visibility.Hidden;
                     break;
             }
-
-            UpdateGUIVisuals();
+            // Rendering loop handles UI update
         }
 
         private void btnSlidePlay_Click(object sender, RoutedEventArgs e)
@@ -279,8 +247,7 @@ namespace HeadBower
                         Rack.UserSettings.SlidePlayMode = _SlidePlayModes.Off;
                         break;
                 }
-
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -289,7 +256,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.UserSettings.SlidePlayMode = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? _SlidePlayModes.Off : _SlidePlayModes.On;
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -303,9 +270,8 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.AutoScroller.Enabled = !Rack.AutoScroller.Enabled;
+                // Rendering loop handles UI update
             }
-
-            UpdateGUIVisuals();
         }
 
         private void btnToggleEyeTracker_Click(object sender, RoutedEventArgs e)
@@ -313,20 +279,7 @@ namespace HeadBower
             if (InstrumentStarted)
             {
                 Rack.GazeToMouse.Enabled = !Rack.GazeToMouse.Enabled;
-            }
-
-            UpdateGUIVisuals();
-        }
-
-        private void CheckMidiPort()
-        {
-            if (Rack.MidiModule.IsMidiOk())
-            {
-                txtMIDIch.Foreground = ActiveBrush;
-            }
-            else
-            {
-                txtMIDIch.Foreground = WarningBrush;
+                // Rendering loop handles UI update
             }
         }
 
@@ -339,9 +292,6 @@ namespace HeadBower
             netytarSetup = new DefaultSetup(this);
             netytarSetup.Setup();
 
-            // Checks the selected MIDI port is available
-            CheckMidiPort();
-
             // Display local IP address
             DisplayLocalIPAddress();
 
@@ -351,7 +301,7 @@ namespace HeadBower
             InstrumentStarted = true;
             UpdateHeadTrackingSource();
             UpdateSensorConnection();
-            UpdateGUIVisuals();
+            // No need for initial UpdateGUIVisuals - rendering loop handles it
         }
 
         private void DisplayLocalIPAddress()
@@ -377,95 +327,11 @@ namespace HeadBower
 
         }
 
-        // Metodo per posizionare l'overlay sopra il pulsante corrente
-        private void PositionViolinOverlay()
-        {
-            if (Rack.MappingModule.CurrentButton != null)
-            {
-                overlayManager?.UpdateOverlay(Rack.MappingModule.CurrentButton, Rack.MappingModule);
-            }
-            else if (overlayManager != null)
-            {
-                // Se nessun pulsante è selezionato, nasconde l'overlay
-                overlayManager.overlayCanvas.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void UpdateGUIVisuals()
-        {
-            // TEXT
-            txtMIDIch.Text = "MP" + Rack.UserSettings.MIDIPort.ToString();
-            txtSensorPort.Text = "COM" + Rack.UserSettings.SensorPort.ToString();
-
-            /// INDICATORS
-            indHeadBow.Background = Rack.UserSettings.InteractionMapping == InteractionMappings.HeadBow ? ActiveBrush : BlankBrush;
-            indEyeTracker.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.EyeTracker ? ActiveBrush : BlankBrush;
-            indWebcam.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Webcam ? ActiveBrush : BlankBrush;
-            indPhone.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Phone ? ActiveBrush : BlankBrush;
-            indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
-            indSlidePlay.Background = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? ActiveBrush : BlankBrush;
-            indToggleCursor.Background = Rack.MappingModule.CursorHidden ? ActiveBrush : BlankBrush;
-            indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;
-            indToggleEyeTracker.Background = Rack.GazeToMouse.Enabled ? ActiveBrush : BlankBrush;
-            indSettings.Background = IsSettingsShown ? ActiveBrush : BlankBrush;
-            
-            // Modulation source indicators
-            indModSourcePitch.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch ? ActiveBrush : BlankBrush;
-            indModSourceMouth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture ? ActiveBrush : BlankBrush;
-            indModSourceRoll.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadRoll ? ActiveBrush : BlankBrush;
-            
-            // Bow pressure source indicators
-            indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
-            indBowPressureSourceMouth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
-            
-            //indNoteNames.Background = Rack.NetytarDmiBox.NetytarSurface.NoteNamesVisualized ? ActiveBrush : BlankBrush;
-
-            /* MIDI */
-            txtMIDIch.Text = "MP" + Rack.MidiModule.OutDevice.ToString();
-            CheckMidiPort();
-
-            Update_SensorIntensityVisuals();
-        }
-
-        private void Update_SensorIntensityVisuals()
-        {
-            switch (Rack.UserSettings.InteractionMapping)
-            {
-                case InteractionMappings.HeadBow:
-                    txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F0");
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
         private void UpdateSensorConnection()
         {
             txtSensorPort.Text = "COM" + SensorPort.ToString();
 
             txtSensorPort.Foreground = Rack.USBreceiverHeadTracker.Connect(SensorPort) ? ActiveBrush : WarningBrush;
-        }
-
-        private void UpdateTimedVisuals(object sender, EventArgs e)
-        {
-            if (InstrumentStarted && sender != null)
-            {
-                try
-                {
-                    txtNoteName.Text = Rack.MappingModule.SelectedNote.ToStandardString();
-                    txtPitch.Text = Rack.MappingModule.SelectedNote.ToPitchValue().ToString();
-                    txtIsBlowing.Text = Rack.MappingModule.Blow ? "B" : "_";
-                    prbBreathSensor.Value = Rack.MappingModule.InputIndicatorValue;
-
-                    // Aggiorna l'overlay grafico sopra il pulsante corrente
-                    PositionViolinOverlay();
-                }
-                catch
-                {
-                    // Ignora eventuali errori
-                }
-            }
         }
 
         #region Global SettingsButtons
@@ -531,61 +397,14 @@ namespace HeadBower
         }
         private void UpdateHeadTrackingSource()
         {
-            // Remove HeadBow behavior and WriteToConsoleBehavior from all modules
-            if (Rack.NithModuleHeadTracker.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
-            {
-                Rack.NithModuleHeadTracker.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
-            }
-            if (Rack.NithModuleWebcam.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
-            {
-                Rack.NithModuleWebcam.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
-            }
-            if (Rack.NithModulePhone.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
-            {
-                Rack.NithModulePhone.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
-            }
-            if (Rack.NithModuleEyeTracker.SensorBehaviors.Contains(Rack.Behavior_HeadBow))
-            {
-                Rack.NithModuleEyeTracker.SensorBehaviors.Remove(Rack.Behavior_HeadBow);
-            }
-
-            // Remove WriteToConsoleBehavior from all modules
-            var writeToConsoleBehaviors = Rack.NithModuleWebcam.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
-            foreach (var behavior in writeToConsoleBehaviors)
-            {
-                Rack.NithModuleWebcam.SensorBehaviors.Remove(behavior);
-            }
-
-            writeToConsoleBehaviors = Rack.NithModulePhone.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
-            foreach (var behavior in writeToConsoleBehaviors)
-            {
-                Rack.NithModulePhone.SensorBehaviors.Remove(behavior);
-            }
-
-            writeToConsoleBehaviors = Rack.NithModuleEyeTracker.SensorBehaviors.OfType<WriteToConsoleBehavior>().ToList();
-            foreach (var behavior in writeToConsoleBehaviors)
-            {
-                Rack.NithModuleEyeTracker.SensorBehaviors.Remove(behavior);
-            }
-
-            switch (Rack.UserSettings.HeadTrackingSource)
-            {
-                case HeadTrackingSources.Webcam:
-                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-                    Rack.NithModuleWebcam.SensorBehaviors.Add(new WriteToConsoleBehavior());
-                    Rack.NithModuleWebcam.SensorBehaviors.Add(Rack.Behavior_HeadBow);
-                    break;
-                case HeadTrackingSources.EyeTracker:
-                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-                    Rack.NithModuleEyeTracker.SensorBehaviors.Add(new WriteToConsoleBehavior());
-                    Rack.NithModuleEyeTracker.SensorBehaviors.Add(Rack.Behavior_HeadBow);
-                    break;
-                case HeadTrackingSources.Phone:
-                    Rack.Behavior_HeadBow.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-                    Rack.NithModulePhone.SensorBehaviors.Add(new WriteToConsoleBehavior());
-                    Rack.NithModulePhone.SensorBehaviors.Add(Rack.Behavior_HeadBow);
-                    break;
-            }
+            // Call the selector in MappingModule to configure parameter selection
+            MappingModule.SelectHeadTrackingSource(Rack.UserSettings.HeadTrackingSource);
+            
+            // Update sensitivity for musical behaviors that use it
+            Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+            Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+            
+            // Note: VisualFeedbackBehavior reads sensitivity automatically from UserSettings based on active source
         }
 
         /// <summary>
@@ -633,7 +452,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.InteractionMapping = InteractionMappings.HeadBow;
                 UpdateHeadTrackingSource();
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -643,7 +462,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.EyeTracker;
                 UpdateHeadTrackingSource();
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -653,7 +472,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.Webcam;
                 UpdateHeadTrackingSource();
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -663,7 +482,7 @@ namespace HeadBower
             {
                 Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.Phone;
                 UpdateHeadTrackingSource();
-                UpdateGUIVisuals();
+                // Rendering loop handles UI update
             }
         }
 
@@ -680,8 +499,8 @@ namespace HeadBower
                 btnCircle.Foreground = ActiveBrush;
                 btnViolin.Foreground = Brushes.White;
 
-                // Reinizializza l'overlayManager con il canvas corretto per il layout Circle
-                overlayManager = new ViolinOverlayManager(ViolinOverlayCircle);
+                // Tell rendering module to use Circle overlay canvas
+                Rack.RenderingModule.SetViolinOverlayCanvas(ViolinOverlayCircle);
             }
         }
 
@@ -698,21 +517,14 @@ namespace HeadBower
                 btnViolin.Foreground = ActiveBrush;
                 btnCircle.Foreground = Brushes.White;
 
-                // Reinizializza l'overlayManager con il canvas corretto per il layout Violin
-                overlayManager = new ViolinOverlayManager(ViolinOverlayViolin);
+                // Tell rendering module to use Violin overlay canvas
+                Rack.RenderingModule.SetViolinOverlayCanvas(ViolinOverlayViolin);
             }
         }
 
         private void btnCalibrateHeadTracker_Click(object sender, RoutedEventArgs e)
         {
-            Rack.EyeTrackerHeadTrackerCalibrator.SetCenterToCurrentPosition();
-            Rack.WebcamHeadTrackerCalibrator.SetCenterToCurrentPosition();
-
-            // Also calibrate phone head tracker if available
-            if (Rack.PhoneHeadTrackerCalibrator != null)
-            {
-                Rack.PhoneHeadTrackerCalibrator.SetCenterToCurrentPosition();
-            }
+            Rack.UnifiedHeadTrackerCalibrator.SetCenterToCurrentPosition();
         }
 
         private void btnReconnect_Click(object sender, RoutedEventArgs e)
@@ -720,18 +532,10 @@ namespace HeadBower
             Rack.UDPreceiverEyeTracker.Disconnect();
             Rack.UDPreceiverWebcam.Disconnect();
             Rack.UDPreceiverPhone.Disconnect();
-            ////Rack.USBreceiverHeadTracker.Disconnect();
-
-            //// Aggiornare l'IP anche durante la riconnessione
-            //if (Rack.UDPsenderPhone != null)
-            //{
-            //    Rack.UDPsenderPhone.SetIpAddress(txtIPAddress.Text);
-            //}
 
             Rack.UDPreceiverWebcam.Connect();
             Rack.UDPreceiverEyeTracker.Connect();
             Rack.UDPreceiverPhone.Connect();
-            //Rack.USBreceiverHeadTracker.Connect(SensorPort);
         }
 
         private void btnSetIP_Click(object sender, RoutedEventArgs e)
@@ -772,12 +576,12 @@ namespace HeadBower
             switch (Rack.UserSettings.InteractionMapping)
             {
                 case InteractionMappings.HeadBow:
-                    Rack.UserSettings.SensorIntensityHead -= 1f;
+                    Rack.UserSettings.SensorIntensityHead -= 0.1f;
                     break;
             }
 
             UpdateHeadTrackingSource();
-            UpdateGUIVisuals();
+            // Rendering loop handles UI update
         }
 
         private void BtnSensingIntensityPlus_OnClick(object sender, RoutedEventArgs e)
@@ -785,39 +589,12 @@ namespace HeadBower
             switch (Rack.UserSettings.InteractionMapping)
             {
                 case InteractionMappings.HeadBow:
-                    Rack.UserSettings.SensorIntensityHead += 1f;
+                    Rack.UserSettings.SensorIntensityHead += 0.1f;
                     break;
             }
 
             UpdateHeadTrackingSource();
-            UpdateGUIVisuals();
-        }
-
-        /// <summary>
-        /// Update the phone IP textbox from other threads via dispatcher.
-        /// Called by RenderingModule.NotifyPhoneIpChanged.
-        /// </summary>
-        /// <param name="ip">New IP address to display.</param>
-        public void UpdatePhoneIpText(string ip)
-        {
-            try
-            {
-                // Ensure this runs on UI thread
-                if (!Dispatcher.CheckAccess())
-                {
-                    Dispatcher.BeginInvoke(() => UpdatePhoneIpText(ip));
-                    return;
-                }
-
-                if (txtIPAddress != null)
-                {
-                    txtIPAddress.Text = ip;
-                }
-            }
-            catch
-            {
-                // Silent failure
-            }
+            // Rendering loop handles UI update
         }
     }
 }

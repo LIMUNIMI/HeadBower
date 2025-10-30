@@ -64,7 +64,7 @@
                     </TextBlock>
                 </Border>
                 <Border Width="100" Height="50" CornerRadius="15" Background="Black">
-                    <ProgressBar Name="prbBreathSensor" Margin="5,5,5,5"  Background="Black" Foreground="White" BorderThickness="0" Orientation="Horizontal" Maximum="100" Minimum="0"/>
+                    <ProgressBar Name="prbIntensity" Margin="5,5,5,5"  Background="Black" Foreground="White" BorderThickness="0" Orientation="Horizontal" Maximum="100" Minimum="0"/>
                 </Border>
                 <Border Visibility="Hidden" Style="{StaticResource LCDBorder}" Height="50" Width="100">
                     <TextBlock Name="txtTestIndicator" Text="val" Style="{StaticResource LCDText}" FontSize="7">

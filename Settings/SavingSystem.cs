@@ -25,7 +25,7 @@ namespace HeadBower.Settings
         /// </summary>
         /// <param name="settings">The settings object to save.</param>
         /// <returns>0 if successful, 1 if an error occurred.</returns>
-        public int SaveSettings(NetytarSettings settings)
+        public int SaveSettings(UserSettings settings)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace HeadBower.Settings
         /// Loads settings from a JSON file.
         /// </summary>
         /// <returns>The loaded settings, or default settings if the file doesn't exist or an error occurs.</returns>
-        public NetytarSettings LoadSettings()
+        public UserSettings LoadSettings()
         {
             try
             {
@@ -56,7 +56,7 @@ namespace HeadBower.Settings
                 }
 
                 string json = File.ReadAllText(filePath);
-                var settings = JsonSerializer.Deserialize<NetytarSettings>(json, _jsonOptions);
+                var settings = JsonSerializer.Deserialize<UserSettings>(json, _jsonOptions);
                 
                 return settings ?? new DefaultSettings();
             }

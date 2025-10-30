@@ -43,81 +43,14 @@ namespace HeadBower.Modules
             Rack.MidiModule = new MidiModuleNAudio(1, 1);
             Rack.MidiModule.OutDevice = 1;
 
-            // Head tracker
-            Rack.USBreceiverHeadTracker = new USBreceiver();
-            Rack.USBreceiverHeadTracker.MaxSamplesPerSecond = 60; // Limit to 60 Hz
-            Rack.NithModuleHeadTracker = new NithModule();
-            Rack.NithModuleHeadTracker.MaxQueueSize = 20;
-            Rack.NithModuleHeadTracker.OverflowBehavior = QueueOverflowBehavior.DropOldest;
-            Rack.USBreceiverHeadTracker.Listeners.Add(Rack.NithModuleHeadTracker);
-
-            // Webcam wrapper
-            Rack.NithModuleWebcam = new NithModule();
-            Rack.NithModuleWebcam.MaxQueueSize = 15;
-            Rack.NithModuleWebcam.OverflowBehavior = QueueOverflowBehavior.DropOldest;
-            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_WebcamWrapper());
-            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_MAfilterParams(
-                new List<NithParameters>
-                {
-                    NithParameters.head_pos_yaw,
-                    NithParameters.head_pos_pitch,
-                    NithParameters.head_pos_roll
-                },
-                0.5f));
-            Rack.WebcamHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
-            Rack.NithModuleWebcam.Preprocessors.Add(Rack.WebcamHeadTrackerCalibrator);
-            // Calculate velocity first (before smoothing) to match eye tracker behavior
-            Rack.NithModuleWebcam.Preprocessors.Add(new NithPreprocessor_HeadAccelerationCalculator(
-                filterAlpha: 0.2f,
-                accelerationSensitivity: 0.2f));
-            Rack.UDPreceiverWebcam = new UDPreceiver(20100);
-            Rack.UDPreceiverWebcam.MaxSamplesPerSecond = 30; // Webcam is slower
-            Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleWebcam);
-            Rack.UDPreceiverWebcam.Connect();
-
-            // Eye tracker
-            Rack.GazeToMouse = new NithSensorBehavior_GazeToMouse();
-
-            Rack.NithModuleEyeTracker = new NithModule();
-            Rack.NithModuleEyeTracker.MaxQueueSize = 30;
-            Rack.NithModuleEyeTracker.OverflowBehavior = QueueOverflowBehavior.DropOldest;
-            Rack.NithModuleEyeTracker.SensorBehaviors.Add(Rack.GazeToMouse);
-            Rack.NithModuleEyeTracker.SensorBehaviors.Add(new EBBdoubleCloseClick());
-
-            Rack.UDPreceiverEyeTracker = new UDPreceiver(20102); // tobias
-            Rack.UDPreceiverEyeTracker.MaxSamplesPerSecond = 100; // Eye tracker is fastest
-            Rack.UDPreceiverEyeTracker.Listeners.Add(Rack.NithModuleEyeTracker);
-            Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadTrackerCalibrator());
-            Rack.NithModuleEyeTracker.Preprocessors.Add(new NithPreprocessor_HeadAccelerationCalculator());
-            Rack.EyeTrackerHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
-            Rack.NithModuleEyeTracker.Preprocessors.Add(Rack.EyeTrackerHeadTrackerCalibrator);
-
-            Rack.UDPreceiverEyeTracker.Connect();
+            // Create UDP/USB receivers for all data sources
+            SetupReceivers();
             
-            // Phone receiver
-            Rack.UDPreceiverPhone = new UDPreceiver((int)NithWrappersReceiverPorts.NITHphoneWrapper);
-            Rack.UDPreceiverPhone.MaxSamplesPerSecond = 60; // Limit to 60 Hz - prevent flooding
-            Rack.NithModulePhone = new NithModule();
-            // Add phone head-tracker calibrator so UI can calibrate phone head pose like other sensors
-            Rack.PhoneHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
-            Rack.NithModulePhone.Preprocessors.Add(Rack.PhoneHeadTrackerCalibrator);
-            Rack.NithModulePhone.MaxQueueSize = 20;           // Buffer up to 20 samples
-            Rack.NithModulePhone.OverflowBehavior = QueueOverflowBehavior.DropOldest; // Drop old samples if overwhelmed
+            // Create the unified NithModule with parameter selector
+            SetupUnifiedModule();
             
-            // Phone auto-discovery
-            Rack.UDPsenderPhone = new UDPsender(21103, "192.168.178.29");
-            
-            Rack.UDPreceiverPhone.Listeners.Add(Rack.NithModulePhone);
-            Rack.UDPreceiverPhone.Connect();
-
-            // Phone sender
-            Rack.NithSenderPhone = new NithSender(10000);
-            Rack.NithSenderPhone.PortListeners.Add(Rack.UDPsenderPhone);
-
-            // Device Discovery Service
-            Rack.NithDeviceDiscoveryService = new NithDeviceDiscoveryService();
-            Rack.NithDeviceDiscoveryService.AddBehavior(new DiscoveryBehavior_NithPhoneWrapper(disposables));
-
+            // Setup behaviors
+            SetupBehaviors();
 
             // Keyboard Module
             Rack.KeyboardModule = new KeyboardModuleWPF(Rack.InstrumentWindow, RawInputCaptureMode.Foreground);
@@ -125,34 +58,177 @@ namespace HeadBower.Modules
             Rack.KeyboardModule.KeyboardBehaviors.Add(new KBstopEmulateMouse());
             Rack.KeyboardModule.KeyboardBehaviors.Add(new KBsimulateBlow());
 
-
             // Surface
             Rack.AutoScroller = new AutoScroller_ButtonMover(Rack.InstrumentWindow.NoteCanvas, 0, 50, 0.1, 0.18);
 
-            // Rendering module
-            Rack.RenderingModule = new RenderingModule(Rack.InstrumentWindow);
+            // Rendering module - pass initial overlay canvas (ViolinOverlayViolin)
+            Rack.RenderingModule = new RenderingModule(Rack.InstrumentWindow, Rack.InstrumentWindow.ViolinOverlayViolin);
             Rack.RenderingModule.StartRendering();
 
-            // HeadBow behavior
-            Rack.Behavior_HeadBow = new NITHbehavior_HeadViolinBow(operationMode: NITHbehavior_HeadViolinBow.WhatDoesPitchRotationDo.Modulation);
+            // Device Discovery Service
+            Rack.NithDeviceDiscoveryService = new NithDeviceDiscoveryService();
+            Rack.NithDeviceDiscoveryService.AddBehavior(new DiscoveryBehavior_NithPhoneWrapper(disposables));
 
             // Disposables
+            AddDisposables();
+
+            // Start Device Discovery Service (at the end)
+            Rack.NithDeviceDiscoveryService.Start();
+        }
+
+        private void SetupReceivers()
+        {
+            // Webcam receiver (NITHwebcamWrapper)
+            Rack.UDPreceiverWebcam = new UDPreceiver(20100);
+            Rack.UDPreceiverWebcam.MaxSamplesPerSecond = 50; // Limited for performance
+            Rack.UDPreceiverWebcam.Connect();
+
+            // Eye tracker receiver (NITHeyetrackerWrapper)
+            Rack.UDPreceiverEyeTracker = new UDPreceiver(20102);
+            Rack.UDPreceiverEyeTracker.MaxSamplesPerSecond = 50; // Limited for performance
+            Rack.UDPreceiverEyeTracker.Connect();
+
+            // Phone receiver (NITHphoneWrapper)
+            Rack.UDPreceiverPhone = new UDPreceiver((int)NithWrappersReceiverPorts.NITHphoneWrapper);
+            Rack.UDPreceiverPhone.MaxSamplesPerSecond = 100; // Limited for performance
+            Rack.UDPreceiverPhone.Connect();
+
+            // Phone sender (for vibration feedback)
+            Rack.UDPsenderPhone = new UDPsender(21103, "192.168.178.29");
+            Rack.NithSenderPhone = new NithSender(10000);
+            Rack.NithSenderPhone.PortListeners.Add(Rack.UDPsenderPhone);
+
+            // USB receiver (optional head tracker)
+            Rack.USBreceiverHeadTracker = new USBreceiver();
+            Rack.USBreceiverHeadTracker.MaxSamplesPerSecond = 50;
+        }
+
+        private void SetupUnifiedModule()
+        {
+            // Create the unified module
+            Rack.NithModuleUnified = new NithModule();
+            Rack.NithModuleUnified.MaxQueueSize = 30;
+            Rack.NithModuleUnified.OverflowBehavior = QueueOverflowBehavior.DropOldest;
+
+            // Create parameter selector
+            Rack.ParameterSelector = new NithPreprocessor_ParameterSelector();
+            
+            // Configure selector with DEFAULT rules (will be updated by source selection)
+            // Default: Webcam for head tracking
+            MappingModule.SelectHeadTrackingSource(HeadTrackingSources.Webcam);
+
+            // Create source normalizer
+            Rack.SourceNormalizer = new NithPreprocessor_SourceNormalizer();
+            
+            // Configure per-source sensitivity multipliers from user settings
+            Rack.SourceNormalizer.AddRulesForAllHeadParameters("NITHwebcamWrapper", Rack.UserSettings.WebcamSensitivity);
+            Rack.SourceNormalizer.AddRulesForAllHeadParameters("NITHphoneWrapper", Rack.UserSettings.PhoneSensitivity);
+            Rack.SourceNormalizer.AddRulesForAllHeadParameters("NITHeyetrackerWrapper", Rack.UserSettings.EyeTrackerSensitivity);
+
+            // Add preprocessors in correct order
+            // 1. Parameter selector FIRST - filters by source
+            Rack.NithModuleUnified.Preprocessors.Add(Rack.ParameterSelector);
+
+            // 2. Webcam wrapper preprocessor (only affects webcam data that passed through)
+            Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_WebcamWrapper());
+
+            // 3. Unified calibrator for head tracking
+            Rack.UnifiedHeadTrackerCalibrator = new NithPreprocessor_HeadTrackerCalibrator();
+            Rack.NithModuleUnified.Preprocessors.Add(Rack.UnifiedHeadTrackerCalibrator);
+
+            // 4. Unified motion calculator - calculates velocity from position, and acceleration from velocity
+            // This handles all sources: webcam (pos→vel→acc), phone (vel→acc), eye tracker (pos→vel→acc)
+            Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_HeadMotionCalculator(
+                filterAlpha: 0.3f,
+                velocitySensitivity: 0.5f,
+                accelerationSensitivity: 0.5f));
+
+            // 5. Source normalizer - applies per-source sensitivity multipliers AFTER motion calculation
+            Rack.NithModuleUnified.Preprocessors.Add(Rack.SourceNormalizer);
+
+            // 6. Smoothing filters
+            Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_MAfilterParams(
+                new List<NithParameters>
+                {
+                    NithParameters.head_pos_pitch,
+                    NithParameters.mouth_ape
+                },
+                0.5f));
+
+            // Connect all receivers to unified module
+            Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleUnified);
+            Rack.UDPreceiverEyeTracker.Listeners.Add(Rack.NithModuleUnified);
+            Rack.UDPreceiverPhone.Listeners.Add(Rack.NithModuleUnified);
+            Rack.USBreceiverHeadTracker.Listeners.Add(Rack.NithModuleUnified);
+        }
+
+        private void SetupBehaviors()
+        {
+            // Create separated behaviors for head bow control
+            Rack.Behavior_BowMotion = new BowMotionBehavior();
+            Rack.Behavior_ModulationControl = new ModulationControlBehavior();
+            Rack.Behavior_BowPressureControl = new BowPressureControlBehavior();
+            Rack.Behavior_HapticFeedback = new HapticFeedbackBehavior();
+
+            // Create visual feedback behavior (replaces BowMotionIndicatorBehavior)
+            Rack.Behavior_VisualFeedback = new VisualFeedbackBehavior();
+
+            // Apply initial sensitivity from settings (only to BowMotionBehavior and HapticFeedback)
+            Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+            Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+
+            // Subscribe to sensitivity changes
+            Rack.UserSettings.PropertyChanged += (sender, e) =>
+            {
+                if (e.PropertyName == nameof(Rack.UserSettings.SensorIntensityHead))
+                {
+                    Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+                    Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+                }
+                // Update source normalizer when per-source sensitivity changes
+                else if (e.PropertyName == nameof(Rack.UserSettings.WebcamSensitivity))
+                {
+                    Rack.SourceNormalizer.UpdateAllHeadParametersMultiplier("NITHwebcamWrapper", Rack.UserSettings.WebcamSensitivity);
+                }
+                else if (e.PropertyName == nameof(Rack.UserSettings.PhoneSensitivity))
+                {
+                    Rack.SourceNormalizer.UpdateAllHeadParametersMultiplier("NITHphoneWrapper", Rack.UserSettings.PhoneSensitivity);
+                }
+                else if (e.PropertyName == nameof(Rack.UserSettings.EyeTrackerSensitivity))
+                {
+                    Rack.SourceNormalizer.UpdateAllHeadParametersMultiplier("NITHeyetrackerWrapper", Rack.UserSettings.EyeTrackerSensitivity);
+                }
+            };
+
+            // Gaze to mouse behavior
+            Rack.GazeToMouse = new NithSensorBehavior_GazeToMouse();
+
+            // Add behaviors to unified module
+            // Musical logic first
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowMotion);
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_ModulationControl);
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowPressureControl);
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_HapticFeedback);
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.GazeToMouse);
+            Rack.NithModuleUnified.SensorBehaviors.Add(new EBBdoubleCloseClick());
+            
+            // Visual feedback LAST (always runs, always has final say on visual state)
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_VisualFeedback);
+        }
+
+        private void AddDisposables()
+        {
             disposables.Add(Rack.USBreceiverHeadTracker);
             disposables.Add(Rack.UDPreceiverEyeTracker);
             disposables.Add(Rack.UDPreceiverWebcam);
             disposables.Add(Rack.UDPreceiverPhone);
             disposables.Add(Rack.UDPsenderPhone);
 
-            disposables.Add(Rack.NithModuleEyeTracker);
-            disposables.Add(Rack.NithModuleHeadTracker);
-            disposables.Add(Rack.NithModuleWebcam);
-            disposables.Add(Rack.NithModulePhone);
+            disposables.Add(Rack.NithModuleUnified); // NEW unified module
+            
             disposables.Add(Rack.RenderingModule);
             disposables.Add(Rack.MidiModule);
             disposables.Add(Rack.NithDeviceDiscoveryService);
-
-            // Start Device Discovery Service (at the end)
-            Rack.NithDeviceDiscoveryService.Start();
         }
 
         public void Dispose()
