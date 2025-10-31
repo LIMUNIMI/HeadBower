@@ -22,6 +22,7 @@ namespace HeadBower.Settings
         private _BowPressureControlModes _bowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
         private ModulationControlSources _modulationControlSource;
         private BowPressureControlSources _bowPressureControlSource;
+        private PressureControlSources _pressureControlSource;
         private bool _noteNamesVisualized;
         private int _occluderOffset;
         private AbsNotes _rootNote;
@@ -39,6 +40,10 @@ namespace HeadBower.Settings
         private float _eyeTrackerPitchSensitivity = 1f;
         private double _pitchThreshold = 15.0;
         private double _pitchRange = 50.0;
+        private float _yawFilterAlpha = 0.25f;
+        private bool _useLogarithmicBowing = false;
+        private _MouthClosedNotePreventionModes _mouthClosedNotePreventionMode = _MouthClosedNotePreventionModes.Off;
+        private float _phoneVibrationSensitivity = 1.0f;
 
         [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
@@ -48,7 +53,10 @@ namespace HeadBower.Settings
             // Initialize new properties with defaults
             ModulationControlSource = ModulationControlSources.HeadPitch;
             BowPressureControlSource = BowPressureControlSources.HeadPitch;
+            PressureControlSource = PressureControlSources.HeadYawVelocity;
             BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
+            MouthClosedNotePreventionMode = _MouthClosedNotePreventionModes.Off;
+            PhoneVibrationSensitivity = 1.0f;
         }
 
         public UserSettings(
@@ -101,7 +109,10 @@ namespace HeadBower.Settings
             // Initialize new properties with defaults
             ModulationControlSource = ModulationControlSources.HeadPitch;
             BowPressureControlSource = BowPressureControlSources.HeadPitch;
+            PressureControlSource = PressureControlSources.HeadYawVelocity;
             BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
+            MouthClosedNotePreventionMode = _MouthClosedNotePreventionModes.Off;
+            PhoneVibrationSensitivity = 1.0f;
         }
 
         public _BlinkSelectScaleMode BlinkSelectScaleMode
@@ -174,6 +185,12 @@ namespace HeadBower.Settings
         {
             get => _bowPressureControlSource;
             set => SetProperty(ref _bowPressureControlSource, value);
+        }
+
+        public PressureControlSources PressureControlSource
+        {
+            get => _pressureControlSource;
+            set => SetProperty(ref _pressureControlSource, value);
         }
 
         public bool NoteNamesVisualized
@@ -317,6 +334,52 @@ namespace HeadBower.Settings
         {
             get => _pitchRange;
             set => SetProperty(ref _pitchRange, Math.Max(value, 1.0));
+        }
+
+        /// <summary>
+        /// Alpha filter for head yaw velocity smoothing.
+        /// Range: 0.1 (heavy smoothing) to 1.0 (no smoothing).
+        /// Affects the exponential moving average filter in HeadMotionCalculator.
+        /// </summary>
+        public float YawFilterAlpha
+        {
+            get => _yawFilterAlpha;
+            set => SetProperty(ref _yawFilterAlpha, Math.Max(0.1f, Math.Min(1.0f, value)));
+        }
+
+        /// <summary>
+        /// Toggle for logarithmic velocity mapping in bowing behavior.
+        /// When true: Uses logarithmic scale for bow velocity mapping (easier fine control).
+        /// When false: Uses linear scale for bow velocity mapping (default).
+        /// </summary>
+        public bool UseLogarithmicBowing
+        {
+            get => _useLogarithmicBowing;
+            set => SetProperty(ref _useLogarithmicBowing, value);
+        }
+
+        /// <summary>
+        /// Toggle for mouth closed note prevention.
+        /// When On: Prevents note playing (blow off) when mouth is closed (mouth_isOpen == false).
+        /// When Off: Notes can play regardless of mouth state (default behavior).
+        /// Requires webcam with mouth tracking support.
+        /// </summary>
+        public _MouthClosedNotePreventionModes MouthClosedNotePreventionMode
+        {
+            get => _mouthClosedNotePreventionMode;
+            set => SetProperty(ref _mouthClosedNotePreventionMode, value);
+        }
+
+        /// <summary>
+        /// Sensitivity multiplier for phone vibration/haptic feedback.
+        /// Applied to vibration amplitude to scale intensity independently from bow motion.
+        /// Range: 0.1 (minimal vibration) to 2.0+ (maximum vibration).
+        /// Default: 1.0 (no scaling).
+        /// </summary>
+        public float PhoneVibrationSensitivity
+        {
+            get => _phoneVibrationSensitivity;
+            set => SetProperty(ref _phoneVibrationSensitivity, Math.Max(value, 0.1f));
         }
 
         protected void SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = null)

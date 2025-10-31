@@ -172,6 +172,24 @@ namespace HeadBower
             }
         }
 
+        private void btnPressureSourceYaw_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.PressureControlSource = PressureControlSources.HeadYawVelocity;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnPressureSourceMouth_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.PressureControlSource = PressureControlSources.MouthAperture;
+                // Rendering loop handles UI update
+            }
+        }
+
         private void btnModulationControlSwitch_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
@@ -401,11 +419,10 @@ namespace HeadBower
         {
             // Call the selector in MappingModule to configure parameter selection
             MappingModule.SelectHeadTrackingSource(Rack.UserSettings.HeadTrackingSource);
-            
+
             // Update sensitivity for musical behaviors that use it
             Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-            Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-            
+
             // Note: VisualFeedbackBehavior reads sensitivity automatically from UserSettings based on active source
         }
 
@@ -639,6 +656,64 @@ namespace HeadBower
                         break;
                 }
                 // Settings auto-save and PropertyChanged triggers SourceNormalizer update
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnYawFilterAlphaMinus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.YawFilterAlpha -= 0.05f;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnYawFilterAlphaPlus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.YawFilterAlpha += 0.05f;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnLogarithmicBowing_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.UseLogarithmicBowing = !Rack.UserSettings.UseLogarithmicBowing;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnMouthClosedPrevention_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                // Toggle the mouth closed note prevention mode
+                Rack.UserSettings.MouthClosedNotePreventionMode =
+                    Rack.UserSettings.MouthClosedNotePreventionMode == _MouthClosedNotePreventionModes.On
+                        ? _MouthClosedNotePreventionModes.Off
+                        : _MouthClosedNotePreventionModes.On;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnPhoneVibrationSensitivityPlus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.PhoneVibrationSensitivity += 0.1f;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnPhoneVibrationSensitivityMinus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.PhoneVibrationSensitivity -= 0.1f;
                 // Rendering loop handles UI update
             }
         }

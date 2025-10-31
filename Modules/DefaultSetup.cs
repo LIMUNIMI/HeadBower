@@ -145,13 +145,14 @@ namespace HeadBower.Modules
             // 4. Unified motion calculator - calculates velocity from position, and acceleration from velocity
             // NOW ALSO calculates discrete direction indicators for instant bow direction changes
             // This handles all sources: webcam (pos→vel→acc→dir), phone (vel→acc→dir), eye tracker (pos→vel→acc→dir)
-            Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_HeadMotionCalculator(
-                filterAlpha: 0.25f,                    // Smoothing for velocity/acceleration (used for intensity)
+            Rack.HeadMotionCalculator = new NithPreprocessor_HeadMotionCalculator(
+                filterAlpha: Rack.UserSettings.YawFilterAlpha,  // Initialize with user setting
                 velocitySensitivity: 0.3f,
                 accelerationSensitivity: 0.3f,
                 directionFilterAlpha: 0.9f,            // Very light filtering for direction (instant response)
                 directionChangeThreshold: 0.05f,       // Velocity threshold for direction deadzone
-                directionWithDeadzone: true));         // Enable deadzone (direction can be 0 = stopped)
+                directionWithDeadzone: true);          // Enable deadzone (direction can be 0 = stopped)
+            Rack.NithModuleUnified.Preprocessors.Add(Rack.HeadMotionCalculator);
 
             // 5. Source normalizer - applies per-source sensitivity multipliers AFTER motion calculation
             Rack.NithModuleUnified.Preprocessors.Add(Rack.SourceNormalizer);
@@ -171,7 +172,7 @@ namespace HeadBower.Modules
                 {
                     NithParameters.mouth_ape
                 },
-                0.35f));
+                0.18f));
 
             // Connect all receivers to unified module
             Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleUnified);
@@ -187,13 +188,16 @@ namespace HeadBower.Modules
             Rack.Behavior_ModulationControl = new ModulationControlBehavior();
             Rack.Behavior_BowPressureControl = new BowPressureControlBehavior();
             Rack.Behavior_HapticFeedback = new HapticFeedbackBehavior();
+            Rack.Behavior_MouthClosedNotePrevention = new MouthClosedNotePreventionBehavior();
 
             // Create visual feedback behavior (replaces BowMotionIndicatorBehavior)
             Rack.Behavior_VisualFeedback = new VisualFeedbackBehavior();
 
-            // Apply initial sensitivity from settings (only to BowMotionBehavior and HapticFeedback)
+            // Apply initial sensitivity from settings (only to BowMotionBehavior)
             Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-            Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
+            
+            // Apply initial bowing mode
+            Rack.Behavior_BowMotion.UseLogarithmicBowing = Rack.UserSettings.UseLogarithmicBowing;
 
             // Subscribe to sensitivity changes
             Rack.UserSettings.PropertyChanged += (sender, e) =>
@@ -201,7 +205,6 @@ namespace HeadBower.Modules
                 if (e.PropertyName == nameof(Rack.UserSettings.SensorIntensityHead))
                 {
                     Rack.Behavior_BowMotion.Sensitivity = Rack.UserSettings.SensorIntensityHead;
-                    Rack.Behavior_HapticFeedback.Sensitivity = Rack.UserSettings.SensorIntensityHead;
                 }
                 // Update source normalizer when per-source sensitivity changes
                 else if (e.PropertyName == nameof(Rack.UserSettings.WebcamSensitivity))
@@ -235,14 +238,25 @@ namespace HeadBower.Modules
                 {
                     Rack.SourceNormalizer.AddRule("NITHeyetrackerWrapper", NithParameters.head_pos_pitch, Rack.UserSettings.EyeTrackerPitchSensitivity);
                 }
+                // Update head motion calculator alpha filter
+                else if (e.PropertyName == nameof(Rack.UserSettings.YawFilterAlpha))
+                {
+                    Rack.HeadMotionCalculator.SetFilterAlpha(Rack.UserSettings.YawFilterAlpha);
+                }
+                // Update bowing mode (linear vs logarithmic)
+                else if (e.PropertyName == nameof(Rack.UserSettings.UseLogarithmicBowing))
+                {
+                    Rack.Behavior_BowMotion.UseLogarithmicBowing = Rack.UserSettings.UseLogarithmicBowing;
+                }
             };
 
             // Gaze to mouse behavior
             Rack.GazeToMouse = new NithSensorBehavior_GazeToMouse();
 
             // Add behaviors to unified module
-            // Musical logic first
-            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowMotion);
+            // CRITICAL ORDER: MouthClosedNotePrevention MUST run BEFORE BowMotion to set gate state
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_MouthClosedNotePrevention); // FIRST - sets gate state
+            Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowMotion);                 // SECOND - respects gate
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_ModulationControl);
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowPressureControl);
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_HapticFeedback);
@@ -251,6 +265,10 @@ namespace HeadBower.Modules
             
             // Visual feedback LAST (always runs, always has final say on visual state)
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_VisualFeedback);
+            
+            // DIAGNOSTIC BEHAVIOR - Uncomment to debug sensor data reception issues
+            // This will log which sensors are sending data and how often
+            // Rack.NithModuleUnified.SensorBehaviors.Add(new Behaviors.DiagnosticBehavior());
         }
 
         private void AddDisposables()

@@ -37,12 +37,14 @@ namespace HeadBower.Modules
         public static NithPreprocessor_ParameterSelector ParameterSelector { get; set; }
         public static NithPreprocessor_HeadTrackerCalibrator UnifiedHeadTrackerCalibrator { get; set; }
         public static NithPreprocessor_SourceNormalizer SourceNormalizer { get; set; }
+        public static NithPreprocessor_HeadMotionCalculator HeadMotionCalculator { get; set; }
 
         // Behaviors
         public static BowMotionBehavior Behavior_BowMotion { get; set; }
         public static ModulationControlBehavior Behavior_ModulationControl { get; set; }
         public static BowPressureControlBehavior Behavior_BowPressureControl { get; set; }
         public static HapticFeedbackBehavior Behavior_HapticFeedback { get; set; }
+        public static MouthClosedNotePreventionBehavior Behavior_MouthClosedNotePrevention { get; set; }
         public static VisualFeedbackBehavior Behavior_VisualFeedback { get; set; }
         public static NithSensorBehavior_GazeToMouse GazeToMouse { get; set; }
 

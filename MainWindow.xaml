@@ -328,6 +328,22 @@
                         <Button Grid.Column="2" Name="btnPitchSensitivityPlus" Content="⮞" Click="BtnPitchSensitivityPlus_OnClick"  Style="{StaticResource DWood}" />
                     </Grid>
 
+                    <!-- Yaw filter alpha (NEW) -->
+                    <Label Content="Yaw smoothing (0.1-1.0)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width = "1*" />
+                            <ColumnDefinition Width = "1*" />
+                            <ColumnDefinition Width = "1*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Name="btnYawFilterAlphaMinus" Content="⮜" Click="BtnYawFilterAlphaMinus_OnClick" Style="{StaticResource DWood}" />
+                        <Border Grid.Column="1" Style="{StaticResource LCDBorder}">
+                            <TextBlock Name="txtYawFilterAlpha" Text="0.25" Style="{StaticResource LCDText}">
+                            </TextBlock>
+                        </Border>
+                        <Button Grid.Column="2" Name="btnYawFilterAlphaPlus" Content="⮞" Click="BtnYawFilterAlphaPlus_OnClick"  Style="{StaticResource DWood}" />
+                    </Grid>
+
                     <!-- Root note selector -->
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -387,6 +403,22 @@
                             <Label VerticalAlignment="Center" Content="Legato" />
                         </StackPanel>
 
+                        <!-- Logarithmic Bowing (NEW) -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Name="btnLogarithmicBowing" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnLogarithmicBowing_Click">
+                                <Border Name="indLogarithmicBowing" Style="{StaticResource Indicator}" />
+                            </Button>
+                            <Label VerticalAlignment="Center" Content="Log Bow" />
+                        </StackPanel>
+
+                        <!-- Mouth Closed Prev. (NEW) -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Name="btnMouthClosedPrevention" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnMouthClosedPrevention_Click">
+                                <Border Name="indMouthClosedPrevention" Style="{StaticResource Indicator}" />
+                            </Button>
+                            <Label VerticalAlignment="Center" Content="Mouth Gate" />
+                        </StackPanel>
+
                         <!-- Note names -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
 
@@ -424,6 +456,23 @@
                         <Button Name="btnBowPressureSourceMouth" Style="{StaticResource DWoodRight}" Click="btnBowPressureSourceMouth_Click">
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
                                 <Border Name="indBowPressureSourceMouth" Style="{StaticResource Indicator}" />
+                                <Label Content="Mouth" VerticalAlignment="Center" FontSize="12" Style="{StaticResource ButtonLabel}"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+
+                    <!-- Pressure (intensity) source selector -->
+                    <Label Content="Pressure (intensity) source" Margin="0,10,0,0"/>
+                    <UniformGrid Columns="2" Rows="1">
+                        <Button Name="btnPressureSourceYaw" Style="{StaticResource DWoodLeft}" Click="btnPressureSourceYaw_Click">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
+                                <Border Name="indPressureSourceYaw" Style="{StaticResource Indicator}" />
+                                <Label Content="Head Yaw" VerticalAlignment="Center" FontSize="12" Style="{StaticResource ButtonLabel}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Name="btnPressureSourceMouth" Style="{StaticResource DWoodRight}" Click="btnPressureSourceMouth_Click">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="4,0,0,0">
+                                <Border Name="indPressureSourceMouth" Style="{StaticResource Indicator}" />
                                 <Label Content="Mouth" VerticalAlignment="Center" FontSize="12" Style="{StaticResource ButtonLabel}"/>
                             </StackPanel>
                         </Button>
@@ -487,6 +536,24 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Name="txtIPAddress" Grid.Column="0" Text="192.168.178.28" Margin="0,0,5,0" VerticalContentAlignment="Center" />
                             <Button Name="btnSetIP" Grid.Column="1" Content="Apply" Click="btnSetIP_Click" Style="{StaticResource DWood}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Phone Vibration Sensitivity section -->
+                    <StackPanel Orientation="Vertical" Margin="0,5,0,0">
+                        <Label Content="Phone Vibration Sensitivity" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Name="btnPhoneVibrationSensitivityMinus" Content="⮜" Click="BtnPhoneVibrationSensitivityMinus_OnClick" Style="{StaticResource DWood}" />
+                            <Border Grid.Column="1" Style="{StaticResource LCDBorder}">
+                                <TextBlock Name="txtPhoneVibrationSensitivity" Text="1.0" Style="{StaticResource LCDText}">
+                                </TextBlock>
+                            </Border>
+                            <Button Grid.Column="2" Name="btnPhoneVibrationSensitivityPlus" Content="⮞" Click="BtnPhoneVibrationSensitivityPlus_OnClick" Style="{StaticResource DWood}" />
                         </Grid>
                     </StackPanel>
                 </StackPanel>

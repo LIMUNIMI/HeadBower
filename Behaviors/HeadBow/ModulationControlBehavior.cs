@@ -41,80 +41,91 @@ namespace HeadBower.Behaviors.HeadBow
 
         public void HandleData(NithSensorData nithData)
         {
-            // Only apply modulation when enabled
-            if (Rack.UserSettings.ModulationControlMode != _ModulationControlModes.On)
+            try
             {
-                Rack.MappingModule.Modulation = 0;
-                return;
-            }
-
-            // Determine which source we're using and check if ALL required parameters are present
-            ModulationControlSources currentSource = Rack.UserSettings.ModulationControlSource;
-            
-            // Select appropriate parameter list based on source
-            List<NithParameters> requiredParams = currentSource == ModulationControlSources.HeadPitch 
-                ? requiredParamsPitch 
-                : requiredParamsMouth;
-
-            // ONLY process if ALL required parameters are present
-            if (nithData.ContainsParameters(requiredParams))
-            {
-                int modulationValue = 0;
-
-                switch (currentSource)
+                // Only apply modulation when enabled
+                if (Rack.UserSettings.ModulationControlMode != _ModulationControlModes.On)
                 {
-                    case ModulationControlSources.HeadPitch:
-                        // Get and filter pitch
-                        double rawPitch = nithData.GetParameterValue(NithParameters.head_pos_pitch).Value.ValueAsDouble;
-                        _pitchPosFilter.Push(rawPitch);
-                        double filteredPitch = _pitchPosFilter.Pull();
-
-                        // Use threshold from settings
-                        double pitchThreshold = Rack.UserSettings.PitchThreshold;
-                        double maxPitchDeviation = Rack.UserSettings.PitchRange;
-                        
-                        if (Math.Abs(filteredPitch) <= pitchThreshold)
-                        {
-                            modulationValue = 0;
-                        }
-                        else
-                        {
-                            // Recreate mapper only if thresholds changed
-                            if (_pitchMapper == null || pitchThreshold != _lastPitchThreshold || maxPitchDeviation != _lastPitchRange)
-                            {
-                                _pitchMapper = new SegmentMapper(pitchThreshold, maxPitchDeviation, 0, 127, true);
-                                _lastPitchThreshold = pitchThreshold;
-                                _lastPitchRange = maxPitchDeviation;
-                            }
-                            double absPitch = Math.Abs(filteredPitch);
-                            modulationValue = (int)_pitchMapper.Map(absPitch);
-                        }
-                        break;
-
-                    case ModulationControlSources.MouthAperture:
-                        // Get and filter mouth aperture
-                        double rawMouthAperture = nithData.GetParameterValue(NithParameters.mouth_ape).Value.ValueAsDouble;
-                        _mouthApertureFilter.Push(rawMouthAperture);
-                        double filteredMouthAperture = _mouthApertureFilter.Pull();
-
-                        if (filteredMouthAperture <= MOUTH_APERTURE_THRESHOLD)
-                        {
-                            modulationValue = 0;
-                        }
-                        else
-                        {
-                            if (_mouthMapper == null)
-                            {
-                                _mouthMapper = new SegmentMapper(MOUTH_APERTURE_THRESHOLD, MOUTH_APERTURE_MAX, 0, 127, true);
-                            }
-                            modulationValue = (int)_mouthMapper.Map(filteredMouthAperture);
-                        }
-                        break;
+                    Rack.MappingModule.Modulation = 0;
+                    return;
                 }
 
-                Rack.MappingModule.Modulation = modulationValue;
+                // Determine which source we're using and check if ALL required parameters are present
+                ModulationControlSources currentSource = Rack.UserSettings.ModulationControlSource;
+                
+                // Select appropriate parameter list based on source
+                List<NithParameters> requiredParams = currentSource == ModulationControlSources.HeadPitch 
+                    ? requiredParamsPitch 
+                    : requiredParamsMouth;
+
+                // ONLY process if ALL required parameters are present
+                if (nithData.ContainsParameters(requiredParams))
+                {
+                    int modulationValue = 0;
+
+                    switch (currentSource)
+                    {
+                        case ModulationControlSources.HeadPitch:
+                            // Get and filter pitch
+                            double rawPitch = nithData.GetParameterValue(NithParameters.head_pos_pitch).Value.ValueAsDouble;
+                            _pitchPosFilter.Push(rawPitch);
+                            double filteredPitch = _pitchPosFilter.Pull();
+
+                            // Use threshold from settings
+                            double pitchThreshold = Rack.UserSettings.PitchThreshold;
+                            double maxPitchDeviation = Rack.UserSettings.PitchRange;
+                            
+                            if (Math.Abs(filteredPitch) <= pitchThreshold)
+                            {
+                                modulationValue = 0;
+                            }
+                            else
+                            {
+                                // Recreate mapper only if thresholds changed
+                                if (_pitchMapper == null || pitchThreshold != _lastPitchThreshold || maxPitchDeviation != _lastPitchRange)
+                                {
+                                    _pitchMapper = new SegmentMapper(pitchThreshold, maxPitchDeviation, 0, 127, true);
+                                    _lastPitchThreshold = pitchThreshold;
+                                    _lastPitchRange = maxPitchDeviation;
+                                }
+                                double absPitch = Math.Abs(filteredPitch);
+                                modulationValue = (int)_pitchMapper.Map(absPitch);
+                            }
+                            break;
+
+                        case ModulationControlSources.MouthAperture:
+                            // Get and filter mouth aperture
+                            double rawMouthAperture = nithData.GetParameterValue(NithParameters.mouth_ape).Value.ValueAsDouble;
+                            _mouthApertureFilter.Push(rawMouthAperture);
+                            double filteredMouthAperture = _mouthApertureFilter.Pull();
+
+                            if (filteredMouthAperture <= MOUTH_APERTURE_THRESHOLD)
+                            {
+                                modulationValue = 0;
+                            }
+                            else
+                            {
+                                if (_mouthMapper == null)
+                                {
+                                    _mouthMapper = new SegmentMapper(MOUTH_APERTURE_THRESHOLD, MOUTH_APERTURE_MAX, 0, 127, true);
+                                }
+                                modulationValue = (int)_mouthMapper.Map(filteredMouthAperture);
+                            }
+                            break;
+                    }
+
+                    Rack.MappingModule.Modulation = modulationValue;
+                }
+                // If parameters missing, keep last modulation value (don't update)
             }
-            // If parameters missing, keep last modulation value (don't update)
+            catch (Exception ex)
+            {
+                // Log exception for debugging
+                Console.WriteLine($"ModulationControlBehavior Exception: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                // Set to zero on error
+                try { Rack.MappingModule.Modulation = 0; } catch { }
+            }
         }
     }
 }

@@ -37,6 +37,12 @@
         MouthAperture
     }
 
+    public enum PressureControlSources
+    {
+        HeadYawVelocity,
+        MouthAperture
+    }
+
     public enum _SharpNotesModes
     {
         On,
@@ -50,6 +56,12 @@
     }
 
     public enum _SlidePlayModes
+    {
+        On,
+        Off
+    }
+
+    public enum _MouthClosedNotePreventionModes
     {
         On,
         Off

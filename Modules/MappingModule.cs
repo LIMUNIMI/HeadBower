@@ -2,6 +2,7 @@
 using HeadBower.Surface;
 using NITHdmis.Music;
 using NITHlibrary.Nith.Internals;
+using NITHlibrary.Nith.Wrappers;
 
 namespace HeadBower.Modules
 {
@@ -90,7 +91,18 @@ namespace HeadBower.Modules
         private Scale SelectedScale { get; set; }
         private Scale StartingScale { get; set; }
 
+        #region Mouth Gate Mechanism
 
+        /// <summary>
+        /// Indicates whether the mouth gate is currently blocking note activation.
+        /// When true, the Blow property will refuse to activate (set to true).
+        /// Set by MouthClosedNotePreventionBehavior based on mouth aperture (mouth_ape) with hysteresis:
+        /// - Gate closes when mouth_ape falls below 10
+        /// - Gate opens when mouth_ape rises above 15
+        /// </summary>
+        public bool IsMouthGateBlocking { get; set; } = false;
+
+        #endregion Mouth Gate Mechanism
 
         #region Instrument logic
 
@@ -116,6 +128,19 @@ namespace HeadBower.Modules
             get { return blow; }
             set
             {
+                // MOUTH GATE: Block activation if mouth is closed (when feature is enabled)
+                if (value == true && IsMouthGateBlocking)
+                {
+                    // Mouth is closed - refuse activation
+                    // Also ensure we stop if somehow we're still playing
+                    if (blow == true)
+                    {
+                        blow = false;
+                        StopSelectedNote();
+                    }
+                    return;
+                }
+
                 switch (Rack.UserSettings.SlidePlayMode)
                 {
                     case _SlidePlayModes.On:
@@ -333,10 +358,11 @@ namespace HeadBower.Modules
             // Whitelist all head motion parameters for the selected source
             Rack.ParameterSelector.AddRulesList(selectedSensorName, AllHeadMotionParameters);
 
-            // ALWAYS whitelist facial parameters from webcam
-            // These are needed for:
-            // - mouth_ape: modulation/bow pressure control
-            // - eyeLeft_ape, eyeRight_ape: required by NithPreprocessor_WebcamWrapper to normalize mouth_ape
+            // CRITICAL: Whitelist mouth parameters from WEBCAM ONLY
+            // The webcam is the ONLY source that sends mouth_ape, eyeLeft_ape, eyeRight_ape
+            // These must ALWAYS be whitelisted regardless of selected head tracking source
+            // This ensures mouth gate, modulation control, and bow pressure control work with all head tracking sources
+            
             Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.mouth_ape);
             Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeLeft_ape);
             Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeRight_ape);
@@ -397,7 +423,19 @@ namespace HeadBower.Modules
         {
             Console.WriteLine("\n=== HEAD TRACKING SOURCE SELECTION ===");
             Console.WriteLine($"Selected Source: {source}");
+            Console.WriteLine($"Sensor Name Mapping:");
+            Console.WriteLine($"  Webcam → NITHwebcamWrapper");
+            Console.WriteLine($"  Phone → NITHphoneWrapper");
+            Console.WriteLine($"  Eye Tracker → NITHeyetrackerWrapper");
+            Console.WriteLine($"\nParameter Selector Rules:");
             Console.WriteLine(Rack.ParameterSelector.GetRulesSummary());
+            Console.WriteLine("=====================================\n");
+            
+            // Log receiver connection status
+            Console.WriteLine("=== RECEIVER CONNECTION STATUS ===");
+            Console.WriteLine($"Webcam (port 20100): {(Rack.UDPreceiverWebcam?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
+            Console.WriteLine($"Eye Tracker (port 20102): {(Rack.UDPreceiverEyeTracker?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
+            Console.WriteLine($"Phone (port {(int)NithWrappersReceiverPorts.NITHphoneWrapper}): {(Rack.UDPreceiverPhone?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
             Console.WriteLine("=====================================\n");
         }
 

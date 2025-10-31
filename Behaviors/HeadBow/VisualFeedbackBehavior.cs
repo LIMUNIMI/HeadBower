@@ -32,14 +32,24 @@ namespace HeadBower.Behaviors.HeadBow
         /// </summary>
         public void HandleData(NithSensorData nithData)
         {
-            // ONLY process if ALL required parameters are present
-            if (nithData.ContainsParameters(requiredParams))
+            try
             {
-                UpdateBowMotionIndicator(nithData);
-                UpdatePitchIndicator(nithData);
-                UpdateThresholds();
+                // ONLY process if ALL required parameters are present
+                if (nithData.ContainsParameters(requiredParams))
+                {
+                    UpdateBowMotionIndicator(nithData);
+                    UpdatePitchIndicator(nithData);
+                    UpdateThresholds();
+                }
+                // If parameters missing, don't update visual feedback
             }
-            // If parameters missing, don't update visual feedback
+            catch (Exception ex)
+            {
+                // Log exception for debugging
+                Console.WriteLine($"VisualFeedbackBehavior Exception: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                // Silent failure for visual feedback - don't crash the pipeline
+            }
         }
 
         /// <summary>

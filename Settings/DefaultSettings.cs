@@ -22,6 +22,8 @@ namespace HeadBower.Settings
             BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
             ModulationControlSource = ModulationControlSources.HeadPitch;
             BowPressureControlSource = BowPressureControlSources.HeadPitch;
+            PressureControlSource = PressureControlSources.HeadYawVelocity;
+            MouthClosedNotePreventionMode = _MouthClosedNotePreventionModes.Off;
             InteractionMapping = InteractionMappings.HeadBow;
             SlidePlayMode = _SlidePlayModes.Off;
             SensorPort = 4;

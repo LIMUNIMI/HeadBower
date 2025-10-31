@@ -135,6 +135,8 @@ namespace HeadBower.Modules
                 InstrumentWindow.indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indBowPress.Background = Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indSlidePlay.Background = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indLogarithmicBowing.Background = Rack.UserSettings.UseLogarithmicBowing ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indMouthClosedPrevention.Background = Rack.UserSettings.MouthClosedNotePreventionMode == _MouthClosedNotePreventionModes.On ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indToggleCursor.Background = Rack.MappingModule.CursorHidden ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indToggleEyeTracker.Background = Rack.GazeToMouse.Enabled ? ActiveBrush : BlankBrush;
@@ -147,6 +149,10 @@ namespace HeadBower.Modules
                 // BOW PRESSURE SOURCE INDICATORS
                 InstrumentWindow.indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indBowPressureSourceMouth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+
+                // PRESSURE (INTENSITY) SOURCE INDICATORS
+                InstrumentWindow.indPressureSourceYaw.Background = Rack.UserSettings.PressureControlSource == PressureControlSources.HeadYawVelocity ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indPressureSourceMouth.Background = Rack.UserSettings.PressureControlSource == PressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
 
                 // ============================================================
                 // MIDI PORT STATUS CHECK
@@ -177,6 +183,12 @@ namespace HeadBower.Modules
                             _ => 1.0f
                         };
                         InstrumentWindow.txtPitchSensitivity.Text = currentPitchSensitivity.ToString("F1");
+                        
+                        // Display yaw filter alpha
+                        InstrumentWindow.txtYawFilterAlpha.Text = Rack.UserSettings.YawFilterAlpha.ToString("F2");
+                        
+                        // Display phone vibration sensitivity
+                        InstrumentWindow.txtPhoneVibrationSensitivity.Text = Rack.UserSettings.PhoneVibrationSensitivity.ToString("F1");
                         break;
                     default:
                         break;
