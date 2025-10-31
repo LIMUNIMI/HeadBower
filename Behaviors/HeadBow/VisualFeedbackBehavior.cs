@@ -11,6 +11,13 @@ namespace HeadBower.Behaviors.HeadBow
     /// </summary>
     public class VisualFeedbackBehavior : INithSensorBehavior
     {
+        // Required parameters - need both velocity and pitch for full visual feedback
+        private readonly List<NithParameters> requiredParams = new List<NithParameters>
+        {
+            NithParameters.head_vel_yaw,
+            NithParameters.head_pos_pitch
+        };
+
         // Constants
         private const double YAW_VELOCITY_SCALE = 1.0;
         private const double VISUAL_SENSITIVITY_DAMPING = 0.05; // Scale down visual feedback
@@ -25,9 +32,14 @@ namespace HeadBower.Behaviors.HeadBow
         /// </summary>
         public void HandleData(NithSensorData nithData)
         {
-            UpdateBowMotionIndicator(nithData);
-            UpdatePitchIndicator(nithData);
-            UpdateThresholds();
+            // ONLY process if ALL required parameters are present
+            if (nithData.ContainsParameters(requiredParams))
+            {
+                UpdateBowMotionIndicator(nithData);
+                UpdatePitchIndicator(nithData);
+                UpdateThresholds();
+            }
+            // If parameters missing, don't update visual feedback
         }
 
         /// <summary>
@@ -35,9 +47,6 @@ namespace HeadBower.Behaviors.HeadBow
         /// </summary>
         private void UpdateBowMotionIndicator(NithSensorData nithData)
         {
-            if (!nithData.ContainsParameter(NithParameters.head_vel_yaw))
-                return;
-
             double rawVelocity = nithData.GetParameterValue(NithParameters.head_vel_yaw).Value.ValueAsDouble;
 
             // Filter for smooth visuals
@@ -59,9 +68,6 @@ namespace HeadBower.Behaviors.HeadBow
         /// </summary>
         private void UpdatePitchIndicator(NithSensorData nithData)
         {
-            if (!nithData.ContainsParameter(NithParameters.head_pos_pitch))
-                return;
-
             double rawPitch = nithData.GetParameterValue(NithParameters.head_pos_pitch).Value.ValueAsDouble;
 
             // Filter for smooth visuals

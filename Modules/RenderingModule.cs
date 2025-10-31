@@ -133,6 +133,7 @@ namespace HeadBower.Modules
                 
                 // FEATURE TOGGLE INDICATORS
                 InstrumentWindow.indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indBowPress.Background = Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indSlidePlay.Background = Rack.UserSettings.SlidePlayMode == _SlidePlayModes.On ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indToggleCursor.Background = Rack.MappingModule.CursorHidden ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indToggleAutoScroll.Background = Rack.AutoScroller.Enabled ? ActiveBrush : BlankBrush;

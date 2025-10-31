@@ -19,6 +19,12 @@
         Off
     }
 
+    public enum _BowPressureControlModes
+    {
+        On,
+        Off
+    }
+
     public enum ModulationControlSources
     {
         HeadPitch,

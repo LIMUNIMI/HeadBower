@@ -9,6 +9,17 @@ namespace HeadBower.Behaviors.HeadBow
     /// </summary>
     public class HapticFeedbackBehavior : INithSensorBehavior
     {
+        // Required parameters (prefer acceleration, fallback to velocity)
+        private readonly List<NithParameters> requiredParamsAcc = new List<NithParameters>
+        {
+            NithParameters.head_acc_yaw
+        };
+
+        private readonly List<NithParameters> requiredParamsVel = new List<NithParameters>
+        {
+            NithParameters.head_vel_yaw
+        };
+
         // Sensitivity property
         public float Sensitivity { get; set; } = 1.0f;
 
@@ -31,33 +42,38 @@ namespace HeadBower.Behaviors.HeadBow
                 return;
             }
 
-            // Get yaw motion magnitude
-            double rawYawMotion = 0;
+            // Try acceleration first, then velocity
+            bool hasAcceleration = nithData.ContainsParameters(requiredParamsAcc);
+            bool hasVelocity = nithData.ContainsParameters(requiredParamsVel);
 
-            if (nithData.ContainsParameter(NithParameters.head_acc_yaw))
+            // ONLY process if at least one required parameter set is present
+            if (hasAcceleration || hasVelocity)
             {
-                rawYawMotion = nithData.GetParameterValue(NithParameters.head_acc_yaw).Value.ValueAsDouble;
-            }
-            else if (nithData.ContainsParameter(NithParameters.head_vel_yaw))
-            {
-                rawYawMotion = nithData.GetParameterValue(NithParameters.head_vel_yaw).Value.ValueAsDouble;
-            }
-            else
-            {
-                return;
-            }
+                // Get yaw motion magnitude
+                double rawYawMotion;
 
-            // Apply sensitivity and get magnitude
-            double yawMagnitude = Math.Abs(rawYawMotion * Sensitivity);
+                if (hasAcceleration)
+                {
+                    rawYawMotion = nithData.GetParameterValue(NithParameters.head_acc_yaw).Value.ValueAsDouble;
+                }
+                else
+                {
+                    rawYawMotion = nithData.GetParameterValue(NithParameters.head_vel_yaw).Value.ValueAsDouble;
+                }
 
-            // Check if we should send vibration
-            if (yawMagnitude >= YAW_LOWERTHRESH_BASE &&
-                (DateTime.Now - _lastVibrationTime).TotalMilliseconds >= VIBRATION_INTERVAL_MS)
-            {
-                int vibIntensity = (int)(_vibrationMapper.Map(yawMagnitude) / VIBRATION_DIVIDER);
-                SendVibrationCommand(vibIntensity, vibIntensity);
-                _lastVibrationTime = DateTime.Now;
+                // Apply sensitivity and get magnitude
+                double yawMagnitude = Math.Abs(rawYawMotion * Sensitivity);
+
+                // Check if we should send vibration
+                if (yawMagnitude >= YAW_LOWERTHRESH_BASE &&
+                    (DateTime.Now - _lastVibrationTime).TotalMilliseconds >= VIBRATION_INTERVAL_MS)
+                {
+                    int vibIntensity = (int)(_vibrationMapper.Map(yawMagnitude) / VIBRATION_DIVIDER);
+                    SendVibrationCommand(vibIntensity, vibIntensity);
+                    _lastVibrationTime = DateTime.Now;
+                }
             }
+            // If parameters missing, don't send vibration
         }
 
         /// <summary>

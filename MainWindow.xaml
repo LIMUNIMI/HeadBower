@@ -371,8 +371,13 @@
                             <Label VerticalAlignment="Center" Content="Modul." />
                         </StackPanel>
 
-                        <!-- Sharp notes -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
+                        <!-- Bow Pressure -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Name="btnBowPress" Style="{StaticResource DWood}" Width="{StaticResource HG}" Click="btnBowPress_Click">
+                                <Border Name="indBowPress" Style="{StaticResource Indicator}" />
+                            </Button>
+                            <Label VerticalAlignment="Center" Content="Bow Press." />
+                        </StackPanel>
 
                         <!-- Slide play -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">

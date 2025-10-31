@@ -107,6 +107,7 @@ namespace HeadBower.Modules
         private int modulation = 0;
         private MidiNotes nextNote = MidiNotes.C5;
         private int pressure = 127;
+        private int bowPressure = 0;
         private MidiNotes selectedNote = MidiNotes.C5;
         private int velocity = 127;
 
@@ -156,25 +157,22 @@ namespace HeadBower.Modules
             get { return modulation; }
             set
             {
+                int newValue;
+                
                 if (Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On)
                 {
-                    if (value < 0)
-                    {
-                        modulation = 0;
-                    }
-                    else if (value > 127)
-                    {
-                        modulation = 127;
-                    }
-                    else
-                    {
-                        modulation = value;
-                    }
-                    SetModulation();
+                    // Clamp to MIDI range
+                    newValue = Math.Clamp(value, 0, 127);
                 }
-                else if (Rack.UserSettings.ModulationControlMode == _ModulationControlModes.Off)
+                else
                 {
-                    modulation = 0;
+                    newValue = 0;
+                }
+                
+                // Only send MIDI if value actually changed
+                if (newValue != modulation)
+                {
+                    modulation = newValue;
                     SetModulation();
                 }
             }
@@ -202,6 +200,33 @@ namespace HeadBower.Modules
                     pressure = value;
                 }
                 SetPressure();
+            }
+        }
+
+        public int BowPressure
+        {
+            get { return bowPressure; }
+            set
+            {
+                int newValue;
+                
+                if (Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On)
+                {
+                    // Clamp to MIDI range
+                    newValue = Math.Clamp(value, 0, 127);
+                }
+                else
+                {
+                    // Force to zero when disabled
+                    newValue = 0;
+                }
+                
+                // Only send MIDI if value actually changed
+                if (newValue != bowPressure)
+                {
+                    bowPressure = newValue;
+                    SetBowPressure();
+                }
             }
         }
 
@@ -270,6 +295,11 @@ namespace HeadBower.Modules
         private void SetModulation()
         {
             Rack.MidiModule.SetModulation(Modulation);
+        }
+
+        private void SetBowPressure()
+        {
+            Rack.MidiModule.SendControlChange(9, BowPressure);
         }
 
         private void SetPressure()

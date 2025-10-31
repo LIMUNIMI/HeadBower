@@ -19,6 +19,7 @@ namespace HeadBower.Settings
         private int _lineThickness;
         private int _midiPort;
         private _ModulationControlModes _modulationControlMode;
+        private _BowPressureControlModes _bowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
         private ModulationControlSources _modulationControlSource;
         private BowPressureControlSources _bowPressureControlSource;
         private bool _noteNamesVisualized;
@@ -44,6 +45,10 @@ namespace HeadBower.Settings
 
         public UserSettings()
         {
+            // Initialize new properties with defaults
+            ModulationControlSource = ModulationControlSources.HeadPitch;
+            BowPressureControlSource = BowPressureControlSources.HeadPitch;
+            BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
         }
 
         public UserSettings(
@@ -96,6 +101,7 @@ namespace HeadBower.Settings
             // Initialize new properties with defaults
             ModulationControlSource = ModulationControlSources.HeadPitch;
             BowPressureControlSource = BowPressureControlSources.HeadPitch;
+            BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
         }
 
         public _BlinkSelectScaleMode BlinkSelectScaleMode
@@ -150,6 +156,12 @@ namespace HeadBower.Settings
         {
             get => _modulationControlMode;
             set => SetProperty(ref _modulationControlMode, value);
+        }
+
+        public _BowPressureControlModes BowPressureControlMode
+        {
+            get => _bowPressureControlMode;
+            set => SetProperty(ref _bowPressureControlMode, value);
         }
 
         public ModulationControlSources ModulationControlSource

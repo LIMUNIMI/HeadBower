@@ -13,6 +13,12 @@ namespace HeadBower.Behaviors.HeadBow
     /// </summary>
     public class BowMotionIndicatorBehavior : INithSensorBehavior
     {
+        // Required parameters
+        private readonly List<NithParameters> requiredParams = new List<NithParameters>
+        {
+            NithParameters.head_vel_yaw
+        };
+
         // Sensitivity property (shares the same slider as BowMotionBehavior)
         public float Sensitivity { get; set; } = 1.0f;
 
@@ -24,23 +30,28 @@ namespace HeadBower.Behaviors.HeadBow
 
         public void HandleData(NithSensorData nithData)
         {
-            // Read head yaw velocity
-            var velParam = nithData.GetParameterValue(NithParameters.head_vel_yaw);
-            if (velParam == null) return;
-            
-            double rawVelocity = velParam.Value.ValueAsDouble;
+            // ONLY process if ALL required parameters are present
+            if (nithData.ContainsParameters(requiredParams))
+            {
+                // Read head yaw velocity
+                var velParam = nithData.GetParameterValue(NithParameters.head_vel_yaw);
+                if (velParam == null) return;
+                
+                double rawVelocity = velParam.Value.ValueAsDouble;
 
-            // Filter for smooth visuals (before applying sensitivity)
-            _velocityFilter.Push(rawVelocity);
-            double filteredVelocity = _velocityFilter.Pull();
+                // Filter for smooth visuals (before applying sensitivity)
+                _velocityFilter.Push(rawVelocity);
+                double filteredVelocity = _velocityFilter.Pull();
 
-            // Normalize to -1 to +1 range
-            // Sensitivity scales the "responsiveness" - higher sensitivity = smaller head movement needed
-            double scaledVelocityScale = VELOCITY_SCALE / Sensitivity;
-            double normalizedPosition = Math.Max(-1.0, Math.Min(1.0, filteredVelocity / scaledVelocityScale));
+                // Normalize to -1 to +1 range
+                // Sensitivity scales the "responsiveness" - higher sensitivity = smaller head movement needed
+                double scaledVelocityScale = VELOCITY_SCALE / Sensitivity;
+                double normalizedPosition = Math.Max(-1.0, Math.Min(1.0, filteredVelocity / scaledVelocityScale));
 
-            // Update visual state
-            Rack.ViolinOverlayState.BowMotionIndicator = normalizedPosition;
+                // Update visual state
+                Rack.ViolinOverlayState.BowMotionIndicator = normalizedPosition;
+            }
+            // If parameters missing, don't update visual feedback
         }
     }
 }

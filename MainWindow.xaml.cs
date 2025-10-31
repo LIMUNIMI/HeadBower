@@ -125,6 +125,15 @@ namespace HeadBower
             }
         }
 
+        private void btnBowPress_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlMode = Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On ? _BowPressureControlModes.Off : _BowPressureControlModes.On;
+                // Rendering loop handles UI update
+            }
+        }
+
         private void btnModSourcePitch_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)

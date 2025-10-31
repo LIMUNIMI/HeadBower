@@ -18,11 +18,12 @@ namespace HeadBower.Settings
             LineThickness = 3;
             SharpNotesMode = _SharpNotesModes.On;
             BlinkSelectScaleMode = _BlinkSelectScaleMode.On;
-            ModulationControlMode = _ModulationControlModes.Off;
+            ModulationControlMode = _ModulationControlModes.On;
+            BowPressureControlMode = _BowPressureControlModes.Off; // DEFAULT: OFF for debugging
             ModulationControlSource = ModulationControlSources.HeadPitch;
             BowPressureControlSource = BowPressureControlSources.HeadPitch;
             InteractionMapping = InteractionMappings.HeadBow;
-            SlidePlayMode = _SlidePlayModes.On;
+            SlidePlayMode = _SlidePlayModes.Off;
             SensorPort = 4;
             MIDIPort = 1;
             RootNote = AbsNotes.C;

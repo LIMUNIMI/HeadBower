@@ -10,6 +10,12 @@ namespace HeadBower.OLD.Behaviors.Headtracker
     public class NithSensorBehaviorYawPlay(double pressureMultiplier = 1.0f, double velocityMultiplier = 1.0f)
         : INithSensorBehavior
     {
+        // Required parameters
+        private readonly List<NithParameters> requiredParams = new List<NithParameters>
+        {
+            NithParameters.head_acc_yaw
+        };
+
         private const double Deadspeed = 5f;
         private readonly SegmentMapper _pressureMapper = new(0, 127f, 0, 127);
         private readonly DoubleFilterMAexpDecaying _speedFilter = new(0.8f);
@@ -24,10 +30,12 @@ namespace HeadBower.OLD.Behaviors.Headtracker
         ///<param name="nithData">The NithSensorData object to handle.</param>
         public void HandleData(NithSensorData nithData)
         {
-            if (nithData.ContainsParameter(NithParameters.head_acc_yaw))
+            // ONLY process if ALL required parameters are present
+            if (nithData.ContainsParameters(requiredParams))
             {
                 HTStrum_ElaboratePosition(nithData);
             }
+            // If parameters missing, don't update anything
         }
 
         public void HTStrum_ElaboratePosition(NithSensorData nithData)
