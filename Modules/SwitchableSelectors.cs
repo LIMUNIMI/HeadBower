@@ -22,8 +22,7 @@
     public enum ModulationControlSources
     {
         HeadPitch,
-        MouthAperture,
-        HeadRoll
+        MouthAperture
     }
 
     public enum BowPressureControlSources

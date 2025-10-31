@@ -143,14 +143,7 @@ namespace HeadBower
             }
         }
 
-        private void btnModSourceRoll_Click(object sender, RoutedEventArgs e)
-        {
-            if (InstrumentStarted)
-            {
-                Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadRoll;
-                // Rendering loop handles UI update
-            }
-        }
+        // Removed: btnModSourceRoll_Click - Roll modulation source has been removed
 
         private void btnBowPressureSourcePitch_Click(object sender, RoutedEventArgs e)
         {
@@ -595,6 +588,50 @@ namespace HeadBower
 
             UpdateHeadTrackingSource();
             // Rendering loop handles UI update
+        }
+
+        private void BtnPitchSensitivityMinus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                // Modify pitch sensitivity for the currently selected head tracking source
+                switch (Rack.UserSettings.HeadTrackingSource)
+                {
+                    case HeadTrackingSources.Webcam:
+                        Rack.UserSettings.WebcamPitchSensitivity -= 0.1f;
+                        break;
+                    case HeadTrackingSources.Phone:
+                        Rack.UserSettings.PhonePitchSensitivity -= 0.1f;
+                        break;
+                    case HeadTrackingSources.EyeTracker:
+                        Rack.UserSettings.EyeTrackerPitchSensitivity -= 0.1f;
+                        break;
+                }
+                // Settings auto-save and PropertyChanged triggers SourceNormalizer update
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnPitchSensitivityPlus_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                // Modify pitch sensitivity for the currently selected head tracking source
+                switch (Rack.UserSettings.HeadTrackingSource)
+                {
+                    case HeadTrackingSources.Webcam:
+                        Rack.UserSettings.WebcamPitchSensitivity += 0.1f;
+                        break;
+                    case HeadTrackingSources.Phone:
+                        Rack.UserSettings.PhonePitchSensitivity += 0.1f;
+                        break;
+                    case HeadTrackingSources.EyeTracker:
+                        Rack.UserSettings.EyeTrackerPitchSensitivity += 0.1f;
+                        break;
+                }
+                // Settings auto-save and PropertyChanged triggers SourceNormalizer update
+                // Rendering loop handles UI update
+            }
         }
     }
 }

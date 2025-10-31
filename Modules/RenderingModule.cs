@@ -94,8 +94,11 @@ namespace HeadBower.Modules
                 // Blowing status
                 InstrumentWindow.txtIsBlowing.Text = Rack.MappingModule.Blow ? "B" : "_";
                 
-                // Intensity indicator
-                InstrumentWindow.prbIntensity.Value = Rack.MappingModule.IntensityIndicator;
+                // Pressure progressbar (MIDI CC9 value: 0-127)
+                InstrumentWindow.prbIntensity.Value = Rack.MappingModule.Pressure;
+
+                // Modulation progressbar (MIDI CC1 value: 0-127) - for debugging
+                InstrumentWindow.prbModulation.Value = Rack.MappingModule.Modulation;
 
                 // Violin overlay positioning
                 if (Rack.MappingModule.CurrentButton != null)
@@ -139,7 +142,6 @@ namespace HeadBower.Modules
                 // MODULATION SOURCE INDICATORS
                 InstrumentWindow.indModSourcePitch.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indModSourceMouth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture ? ActiveBrush : BlankBrush;
-                InstrumentWindow.indModSourceRoll.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadRoll ? ActiveBrush : BlankBrush;
                 
                 // BOW PRESSURE SOURCE INDICATORS
                 InstrumentWindow.indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
@@ -164,6 +166,16 @@ namespace HeadBower.Modules
                 {
                     case InteractionMappings.HeadBow:
                         InstrumentWindow.txtSensingIntensity.Text = Rack.UserSettings.SensorIntensityHead.ToString("F1");
+                        
+                        // Display pitch sensitivity for current head tracking source
+                        float currentPitchSensitivity = Rack.UserSettings.HeadTrackingSource switch
+                        {
+                            HeadTrackingSources.Webcam => Rack.UserSettings.WebcamPitchSensitivity,
+                            HeadTrackingSources.Phone => Rack.UserSettings.PhonePitchSensitivity,
+                            HeadTrackingSources.EyeTracker => Rack.UserSettings.EyeTrackerPitchSensitivity,
+                            _ => 1.0f
+                        };
+                        InstrumentWindow.txtPitchSensitivity.Text = currentPitchSensitivity.ToString("F1");
                         break;
                     default:
                         break;

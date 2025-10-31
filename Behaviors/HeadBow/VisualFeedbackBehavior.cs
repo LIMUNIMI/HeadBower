@@ -12,7 +12,8 @@ namespace HeadBower.Behaviors.HeadBow
     public class VisualFeedbackBehavior : INithSensorBehavior
     {
         // Constants
-        private const double YAW_VELOCITY_SCALE = 10.0; // -10 to +10 m/s maps to -1 to +1
+        private const double YAW_VELOCITY_SCALE = 1.0;
+        private const double VISUAL_SENSITIVITY_DAMPING = 0.05; // Scale down visual feedback
 
         // Filters for smooth visual feedback
         private readonly DoubleFilterMAexpDecaying _yawVelFilter = new(0.85f);
@@ -43,13 +44,11 @@ namespace HeadBower.Behaviors.HeadBow
             _yawVelFilter.Push(rawVelocity);
             double filteredVelocity = _yawVelFilter.Pull();
 
-            // Get sensitivity based on current head tracking source
-            float sensitivity = GetCurrentSourceSensitivity();
-
             // Normalize to -1 to +1 range
-            // Higher sensitivity = smaller head movement needed for same visual displacement
-            double scaledVelocityScale = YAW_VELOCITY_SCALE / sensitivity;
-            double normalizedPosition = Math.Max(-1.0, Math.Min(1.0, filteredVelocity / scaledVelocityScale));
+            // Note: Data has already been processed by SourceNormalizer, so we just need to scale to visual range
+            // Apply damping to make visual feedback less sensitive
+            double normalizedPosition = Math.Max(-1.0, Math.Min(1.0, 
+                (filteredVelocity / YAW_VELOCITY_SCALE) * VISUAL_SENSITIVITY_DAMPING));
 
             // Update visual state
             Rack.ViolinOverlayState.BowMotionIndicator = normalizedPosition;
@@ -84,20 +83,6 @@ namespace HeadBower.Behaviors.HeadBow
         {
             // Get threshold from settings (shared across all behaviors)
             Rack.ViolinOverlayState.PitchThreshold = Rack.UserSettings.PitchThreshold / Rack.UserSettings.PitchRange;
-        }
-
-        /// <summary>
-        /// Gets the sensitivity multiplier for the currently active head tracking source.
-        /// </summary>
-        private float GetCurrentSourceSensitivity()
-        {
-            return Rack.UserSettings.HeadTrackingSource switch
-            {
-                HeadTrackingSources.Webcam => Rack.UserSettings.WebcamSensitivity,
-                HeadTrackingSources.Phone => Rack.UserSettings.PhoneSensitivity,
-                HeadTrackingSources.EyeTracker => Rack.UserSettings.EyeTrackerSensitivity,
-                _ => 1.0f
-            };
         }
     }
 }

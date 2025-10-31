@@ -158,17 +158,13 @@ namespace HeadBower.Modules
             {
                 if (Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On)
                 {
-                    if (value < MIN_VALUES_THRESHOLD && value > 1)
+                    if (value < 0)
                     {
-                        modulation = MIN_VALUES_THRESHOLD;
+                        modulation = 0;
                     }
                     else if (value > 127)
                     {
                         modulation = 127;
-                    }
-                    else if (value == 0)
-                    {
-                        modulation = 0;
                     }
                     else
                     {
@@ -293,6 +289,7 @@ namespace HeadBower.Modules
         /// <summary>
         /// Configures the parameter selector to whitelist head motion parameters from the selected source
         /// and block them from all other sources.
+        /// ALWAYS whitelists: mouth_ape, eye apertures (from webcam), gaze parameters (from eye tracker).
         /// </summary>
         /// <param name="source">The head tracking source to enable</param>
         public static void SelectHeadTrackingSource(HeadTrackingSources source)
@@ -305,6 +302,18 @@ namespace HeadBower.Modules
 
             // Whitelist all head motion parameters for the selected source
             Rack.ParameterSelector.AddRulesList(selectedSensorName, AllHeadMotionParameters);
+
+            // ALWAYS whitelist facial parameters from webcam
+            // These are needed for:
+            // - mouth_ape: modulation/bow pressure control
+            // - eyeLeft_ape, eyeRight_ape: required by NithPreprocessor_WebcamWrapper to normalize mouth_ape
+            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.mouth_ape);
+            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeLeft_ape);
+            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeRight_ape);
+            
+            // ALWAYS whitelist gaze from eye tracker (needed for gaze-to-mouse control)
+            Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_x);
+            Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_y);
 
             // Block head motion parameters from all OTHER sources
             BlockHeadMotionFromOtherSources(source);
@@ -367,8 +376,10 @@ namespace HeadBower.Modules
         #region Shared values
 
         public Button CheckedButton { get; internal set; }
+        [Obsolete("No longer used - prbIntensity progressbar now directly reflects Pressure (MIDI CC9) value")]
         public double IntensityIndicator { get; set; } = 0f;
         public double HeadYawPosition { get; internal set; }
+        [Obsolete("No longer used - was replaced by direct Pressure value for progressbar feedback")]
         public int InputIndicatorValue { get; internal set; }
 
         #endregion Shared values

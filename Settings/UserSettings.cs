@@ -33,6 +33,9 @@ namespace HeadBower.Settings
         private float _webcamSensitivity = 1f;
         private float _phoneSensitivity = 20f;
         private float _eyeTrackerSensitivity = 1f;
+        private float _webcamPitchSensitivity = 1f;
+        private float _phonePitchSensitivity = 1f;
+        private float _eyeTrackerPitchSensitivity = 1f;
         private double _pitchThreshold = 15.0;
         private double _pitchRange = 50.0;
 
@@ -225,6 +228,39 @@ namespace HeadBower.Settings
         {
             get => _eyeTrackerSensitivity;
             set => SetProperty(ref _eyeTrackerSensitivity, Math.Max(value, 0.01f));
+        }
+
+        /// <summary>
+        /// Pitch sensitivity multiplier for webcam head tracking.
+        /// Applied specifically to head_pos_pitch parameter from the webcam.
+        /// Independent from general head tracking sensitivity.
+        /// </summary>
+        public float WebcamPitchSensitivity
+        {
+            get => _webcamPitchSensitivity;
+            set => SetProperty(ref _webcamPitchSensitivity, Math.Max(value, 0.01f));
+        }
+
+        /// <summary>
+        /// Pitch sensitivity multiplier for phone head tracking.
+        /// Applied specifically to head_pos_pitch parameter from the phone.
+        /// Independent from general head tracking sensitivity.
+        /// </summary>
+        public float PhonePitchSensitivity
+        {
+            get => _phonePitchSensitivity;
+            set => SetProperty(ref _phonePitchSensitivity, Math.Max(value, 0.01f));
+        }
+
+        /// <summary>
+        /// Pitch sensitivity multiplier for eye tracker head tracking.
+        /// Applied specifically to head_pos_pitch parameter from the eye tracker.
+        /// Independent from general head tracking sensitivity.
+        /// </summary>
+        public float EyeTrackerPitchSensitivity
+        {
+            get => _eyeTrackerPitchSensitivity;
+            set => SetProperty(ref _eyeTrackerPitchSensitivity, Math.Max(value, 0.01f));
         }
 
         public int SensorPort

@@ -5,8 +5,9 @@ using NITHlibrary.Tools.Mappers;
 namespace HeadBower.Behaviors.HeadBow
 {
     /// <summary>
-    /// Core bow motion detection using head yaw velocity.
+    /// Core bow motion detection using head yaw velocity and direction.
     /// Handles note triggering, direction changes, and velocity mapping.
+    /// Uses discrete direction indicators for instant bow direction changes without smoothing lag.
     /// </summary>
     public class BowMotionBehavior : INithSensorBehavior
     {
@@ -16,7 +17,7 @@ namespace HeadBower.Behaviors.HeadBow
         // Required parameters
         private readonly List<NithParameters> requiredParams = new List<NithParameters>
         {
-            // We need head_vel_yaw for bow motion
+            // We need head_vel_yaw for bow motion and head_direction_yaw for instant direction detection
         };
 
         // Constants and thresholds
@@ -35,7 +36,7 @@ namespace HeadBower.Behaviors.HeadBow
 
         public void HandleData(NithSensorData nithData)
         {
-            // 1. Get yaw velocity (only velocity, not acceleration)
+            // 1. Get yaw velocity for intensity and magnitude
             double rawYawMotion = 0;
 
             if (nithData.ContainsParameter(NithParameters.head_vel_yaw))
@@ -54,12 +55,23 @@ namespace HeadBower.Behaviors.HeadBow
             // Update MappingModule with motion value
             Rack.MappingModule.HeadYawMotion = rawYawMotion;
 
-            // 2. Determine direction and update state
+            // 2. Get direction from discrete direction parameter (instant response, no smoothing lag)
             _previousDirection = _currentDirection;
-            _currentDirection = Math.Sign(rawYawMotion);
+            
+            if (nithData.ContainsParameter(NithParameters.head_dir_yaw))
+            {
+                _currentDirection = (int)nithData.GetParameterValue(NithParameters.head_dir_yaw).Value.ValueAsDouble;
+            }
+            else
+            {
+                // Fallback to old method if direction parameter not available
+                _currentDirection = Math.Sign(rawYawMotion);
+            }
+
+            // Detect direction change (instant detection from discrete direction parameter)
             bool isDirectionChanged = _previousDirection != 0 && _currentDirection != 0 && _previousDirection != _currentDirection;
 
-            // 3. Calculate magnitude
+            // 3. Calculate magnitude (using smoothed velocity for intensity)
             _yawMagnitude = Math.Abs(rawYawMotion);
 
             // 4. Map velocity to MIDI values
@@ -69,11 +81,10 @@ namespace HeadBower.Behaviors.HeadBow
                 mappedYaw = _yawVelMapper.Map(_yawMagnitude);
             }
 
-            // Set values in MappingModule
+            // Set pressure value in MappingModule (which updates MIDI CC9 and GUI progressbar)
             Rack.MappingModule.Pressure = (int)mappedYaw;
-            Rack.MappingModule.InputIndicatorValue = (int)mappedYaw;
 
-            // 5. Handle direction change
+            // 5. Handle direction change (instant response - no lag!)
             if (isDirectionChanged)
             {
                 Rack.MappingModule.Blow = false;

@@ -263,6 +263,8 @@ namespace HeadBower.Behaviors.HeadBow
                             }
                             break;
                             
+                        // LEGACY: HeadRoll option removed - this behavior is deprecated anyway
+                        /*
                         case ModulationControlSources.HeadRoll:
                             if (Math.Abs(filteredRoll) <= ROLL_THRESHOLD)
                             {
@@ -274,6 +276,7 @@ namespace HeadBower.Behaviors.HeadBow
                                 modulationValue = (int)_modulationMapperRoll.Map(absRoll);
                             }
                             break;
+                        */
                     }
                     
                     Rack.MappingModule.Modulation = modulationValue;

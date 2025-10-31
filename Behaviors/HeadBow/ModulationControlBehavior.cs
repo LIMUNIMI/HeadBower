@@ -7,36 +7,52 @@ namespace HeadBower.Behaviors.HeadBow
 {
     /// <summary>
     /// Controls MIDI modulation (CC1) based on various input sources:
-    /// - Head pitch rotation
-    /// - Mouth aperture
-    /// - Head roll rotation
+    /// - Head pitch rotation (with deadzone)
+    /// - Mouth aperture (percentage 0-100)
     /// Does NOT update visual feedback - that's handled by VisualFeedbackBehavior.
+    /// 
+    /// IMPORTANT: When using mouth aperture as the modulation source, this behavior only 
+    /// processes frames that contain mouth_ape data. Frames from other sensors (e.g., eye tracker)
+    /// that don't include facial parameters are skipped, preserving the last modulation value.
     /// </summary>
     public class ModulationControlBehavior : INithSensorBehavior
     {
         // Filters for each input source
         private readonly DoubleFilterMAexpDecaying _pitchPosFilter = new DoubleFilterMAexpDecaying(0.9f);
-        private readonly DoubleFilterMAexpDecaying _rollPosFilter = new DoubleFilterMAexpDecaying(0.9f);
         private readonly DoubleFilterMAexpDecaying _mouthApertureFilter = new DoubleFilterMAexpDecaying(0.7f);
 
-        // Constants
-        private const double MAX_MOUTH_APERTURE = 100.0;
+        // Constants for mouth aperture (0-100 percentage range from webcam wrapper)
         private const double MOUTH_APERTURE_THRESHOLD = 15.0;
-        private const double MAX_ROLL_DEVIATION = 50.0;
-        private const double ROLL_THRESHOLD = 15.0;
+        private const double MOUTH_APERTURE_MAX = 80.0; // Reach max modulation at 80% aperture, not 100%
 
         public void HandleData(NithSensorData nithData)
         {
-            // Only apply modulation when note is being played and modulation is enabled
-            if (!Rack.MappingModule.Blow || Rack.UserSettings.ModulationControlMode != _ModulationControlModes.On)
+            // Only apply modulation when modulation is enabled (independent of Blow state)
+            if (Rack.UserSettings.ModulationControlMode != _ModulationControlModes.On)
             {
                 Rack.MappingModule.Modulation = 0;
                 return;
             }
 
+            // Determine which source requires which parameters
+            bool needsMouthApe = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture;
+            bool needsPitch = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch;
+
+            // SKIP THIS FRAME if required parameters are missing
+            // This prevents flickering when using mouth aperture source with eye tracker
+            // (eye tracker sends head motion but not facial parameters)
+            if (needsMouthApe && !nithData.ContainsParameter(NithParameters.mouth_ape))
+            {
+                return; // Skip processing, keep last modulation value
+            }
+
+            if (needsPitch && !nithData.ContainsParameter(NithParameters.head_pos_pitch))
+            {
+                return; // Skip processing, keep last modulation value
+            }
+
             // Get and filter input values based on source
             double filteredPitch = 0;
-            double filteredRoll = 0;
             double filteredMouthAperture = 0;
 
             // Get head pitch
@@ -47,15 +63,7 @@ namespace HeadBower.Behaviors.HeadBow
                 filteredPitch = _pitchPosFilter.Pull();
             }
 
-            // Get head roll
-            if (nithData.ContainsParameter(NithParameters.head_pos_roll))
-            {
-                double rawRoll = nithData.GetParameterValue(NithParameters.head_pos_roll).Value.ValueAsDouble;
-                _rollPosFilter.Push(rawRoll);
-                filteredRoll = _rollPosFilter.Pull();
-            }
-
-            // Get mouth aperture
+            // Get mouth aperture (comes as 0-100 from webcam wrapper)
             if (nithData.ContainsParameter(NithParameters.mouth_ape))
             {
                 double rawMouthAperture = nithData.GetParameterValue(NithParameters.mouth_ape).Value.ValueAsDouble;
@@ -69,16 +77,19 @@ namespace HeadBower.Behaviors.HeadBow
             switch (Rack.UserSettings.ModulationControlSource)
             {
                 case ModulationControlSources.HeadPitch:
-                    // Use threshold from settings
+                    // Use threshold and range from settings
                     double pitchThreshold = Rack.UserSettings.PitchThreshold;
                     double maxPitchDeviation = Rack.UserSettings.PitchRange;
                     
+                    // Deadzone: if within threshold, modulation stays at 0
                     if (Math.Abs(filteredPitch) <= pitchThreshold)
                     {
                         modulationValue = 0;
                     }
                     else
                     {
+                        // Beyond threshold: map absolute pitch to 0-127
+                        // Whether pitch is positive or negative, modulation increases
                         double absPitch = Math.Abs(filteredPitch);
                         var mapper = new SegmentMapper(pitchThreshold, maxPitchDeviation, 0, 127, true);
                         modulationValue = (int)mapper.Map(absPitch);
@@ -86,27 +97,16 @@ namespace HeadBower.Behaviors.HeadBow
                     break;
 
                 case ModulationControlSources.MouthAperture:
+                    // Mouth aperture comes as 0-100 percentage from webcam wrapper
+                    // Reaches max modulation at 80% aperture, giving headroom for natural mouth opening variations
                     if (filteredMouthAperture <= MOUTH_APERTURE_THRESHOLD)
                     {
                         modulationValue = 0;
                     }
                     else
                     {
-                        var mapper = new SegmentMapper(MOUTH_APERTURE_THRESHOLD, MAX_MOUTH_APERTURE, 0, 127, true);
+                        var mapper = new SegmentMapper(MOUTH_APERTURE_THRESHOLD, MOUTH_APERTURE_MAX, 0, 127, true);
                         modulationValue = (int)mapper.Map(filteredMouthAperture);
-                    }
-                    break;
-
-                case ModulationControlSources.HeadRoll:
-                    if (Math.Abs(filteredRoll) <= ROLL_THRESHOLD)
-                    {
-                        modulationValue = 0;
-                    }
-                    else
-                    {
-                        double absRoll = Math.Abs(filteredRoll);
-                        var mapper = new SegmentMapper(ROLL_THRESHOLD, MAX_ROLL_DEVIATION, 0, 127, true);
-                        modulationValue = (int)mapper.Map(absRoll);
                     }
                     break;
             }
