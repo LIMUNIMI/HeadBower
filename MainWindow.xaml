@@ -297,7 +297,7 @@
                     </Grid>
 
                     <!-- Sensing intensity -->
-                    <Label Content="Sensing intensity" />
+                    <Label Content="Yaw intensity" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width = "1*" />
@@ -313,7 +313,7 @@
                     </Grid>
 
                     <!-- Pitch sensitivity -->
-                    <Label Content="Pitch sensitivity" />
+                    <Label Content="Inclination sensitivity" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width = "1*" />
