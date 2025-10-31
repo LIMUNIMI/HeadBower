@@ -367,6 +367,16 @@ namespace HeadBower.Modules
             Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeLeft_ape);
             Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeRight_ape);
             
+            // ADDITIONAL FIX: Also whitelist mouth parameters from the SELECTED SOURCE
+            // Some sensors (phone, eye tracker) may merge/forward webcam data with their own SensorName
+            // This ensures mouth gate works even when data is merged
+            if (selectedSensorName != "NITHwebcamWrapper")
+            {
+                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.mouth_ape);
+                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.eyeLeft_ape);
+                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.eyeRight_ape);
+            }
+            
             // ALWAYS whitelist gaze from eye tracker (needed for gaze-to-mouse control)
             Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_x);
             Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_y);
