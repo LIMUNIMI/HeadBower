@@ -15,15 +15,48 @@ HeadBower transforms subtle head movements (yaw, pitch, roll) and facial express
 ### Installation
 1. Extract the HeadBower ZIP file to a folder on your Windows PC
 2. Ensure you have a MIDI output device or virtual MIDI port installed (e.g., loopMIDI, Microsoft GS Wavetable Synth)
-3. Launch `HeadBower.exe`
+3. Install a MIDI-compatible synthesizer or virtual instrument (see recommendations below)
+4. Launch `HeadBower.exe`
 
 ### Initial Setup
 1. **MIDI Configuration**: In the Settings panel (gear icon), select your desired MIDI output port using the ⮜/⮞ buttons
 2. **Head Tracking Source**: Choose your preferred tracking method:
    - **Webcam**: Face tracking via your computer's webcam (requires NITHwebcamWrapper companion app)
    - **Phone**: Use your smartphone as a motion sensor (requires NITHphoneWrapper mobile app)
-   - **Eye Tracker**: Use compatible eye-tracking hardware (requires NITHeyetrackerWrapper)
+   - **Eye Tracker**: Use compatible eye-tracking hardware (requires NITHeyetrackerWrapper, COMING SOON)
 3. **Calibration**: Click "HT cal" to set your neutral head position
+
+## System Requirements & Minimum Setup
+
+### Minimum Requirements to Get Started
+
+**Software:**
+- **Windows 10 or later** (.NET 9.0 Runtime included in standalone distribution)
+- **MIDI Synthesizer/Virtual Instrument** (required for sound output):
+  - **Recommended**: [AudioModeling SWAM Viola](https://audiomodeling.com/strings/swam-viola/) - Professional physical modeling synthesizer optimized for expressive control
+  - **Free Alternative**: Any VST instrument with MIDI CC mapping support
+  - **Free VST Host**: [VSTHost](https://www.hermannseib.com/english/vsthost.htm) - Lightweight standalone VST plugin host
+- **Virtual MIDI Port** (if using software synth): loopMIDI, Microsoft GS Wavetable Synth, or similar
+
+**Hardware:**
+
+**Note Selection (Required):**
+- **Eye Tracker** - Any eye-tracking device capable of controlling the mouse cursor (cursor can be hidden in HeadBower)
+- **Mouse/Trackpad** - If you just want to try the application, you can just use a standard mouse or trackpad for clicking note buttons
+
+**Head Tracking (Required - Choose ONE):**
+- **Webcam** - Any standard webcam + [NITHwebcamWrapper](https://github.com/LIMUNIMI/NITHwebcamWrapper) companion app (Python-based, requirements in repository)
+- **Smartphone** - Android 7.0+ or iOS device + [NITHphoneWrapper](https://github.com/LIMUNIMI/NITHphoneWrapper) mobile app (WiFi network required, phone and PC must be on same network)
+- **NITHheadTracker** - DIY Arduino-based head tracker ([Build Guide](https://neeqstock.notion.site/NITHheadTracker-BNO055-eda9cb4d752c45869abd85d06a1d7e5d)), build cost €30-50, no special skills required, connects via USB
+
+### Optional Enhancements
+
+**Coming Soon:**
+- **NITHbreathSensor** - Breath pressure control for bow pressure/dynamics ([Documentation](https://neeqstock.notion.site/NITHbreathSensor-5010DP-b23a43406b4d432d974a42bbe0f63695))
+- **NITHbiteSensor** - Bite pressure control for bow pressure/dynamics ([Documentation](https://neeqstock.notion.site/NITHbiteSensor-FSR-d0dabadc9abe470eb583985b22f3d2a9))
+- **NITHbeamWrapper** - Beam Eye Tracker integration ([Repository](https://github.com/LIMUNIMI/NITHbeamWrapper), [Beam Eye Tracker](https://beam.eyeware.tech/))
+
+These sensors can provide alternative input methods for bow pressure control and are currently being rebuilt with updated implementations.
 
 ## How It Works
 
@@ -170,6 +203,70 @@ HeadBower provides real-time visual feedback through an overlay bow indicator:
 - **Red Glow**: Indicates maximum velocity reached
 - **Color Changes**: Reflect intensity levels and movement direction
 
+## Getting Started: Minimal Setup & Testing
+
+Follow these steps to get HeadBower running with minimal requirements:
+
+### Step 1: Start the MIDI Chain
+1. **Download and install** a free VST host like [VSTHost](https://www.hermannseib.com/english/vsthost.htm)
+2. **Download and install** [loopMIDI](https://www.tobias-erichsen.de/wp-content/uploads/2021/06/loopMIDISetup_1_0_16_27.zip) or use Microsoft GS Wavetable Synth
+3. Create a virtual MIDI port in loopMIDI (or use the built-in one)
+4. **Start VSTHost** and:
+   - Load a free VST instrument (any synth that responds to MIDI CC messages)
+   - Configure MIDI input to receive from the virtual port you created
+   - Verify the instrument responds to Note On/Off, CC 1 (Modulation), CC 8 (Channel Pressure), and CC 9 (Bow Pressure)
+
+### Step 2: Start Head Tracking
+1. **Download and run** [NITHwebcamWrapper](https://github.com/LIMUNIMI/NITHwebcamWrapper) in the background
+   - Verify your webcam is working and face tracking is active
+   - Leave it running throughout the session
+
+### Step 3: Launch HeadBower
+1. **Launch `HeadBower.exe`**
+2. **Configure MIDI Output**:
+   - In Settings panel (⚙️ icon), select your virtual MIDI port from the MIDI Port dropdown
+3. **Configure Head Tracking**:
+   - Select **Webcam** as the head tracking source
+4. **Enable Modulation**:
+   - Enable **Modul.** toggle (should turn green)
+   - Set **Modulation Source** to **Mouth** for facial expression control
+5. **Calibration**:
+   - If in the visual feedback overlay you find your head pitch is not correctly aligned, click "HT cal" to set your neutral head position
+
+### Step 4: Test the Setup
+1. **Select a note** by hovering over a note button in the Violin or Circle layout
+2. **Produce sound** by moving your head left-right (yaw):
+   - Faster movement = louder sound
+   - Return head to center = silence
+3. **Add expression** by opening/closing your mouth:
+   - Should control vibrato/modulation (CC 1) in your synth
+4. **Verify in the UI**:
+   - White intensity bar should move as you sway your head
+   - Green modulation bar should move as you change mouth aperture
+
+### Optional: Add Phone Vibration Feedback
+If you're on the same WiFi network and want haptic feedback:
+
+1. **Install** [NITHphoneWrapper](https://github.com/LIMUNIMI/NITHphoneWrapper) on your Android or iOS smartphone
+2. **In HeadBower Settings**:
+   - Enter your phone's IP address in the "Phone IP Address" field
+   - Click "Apply"
+3. **In NITHphoneWrapper app**:
+   - Click "Find Receivers" - it will auto-discover HeadBower
+   - Verify connection
+4. **Test**:
+   - Click "Test Vibration" button in HeadBower
+   - Phone should vibrate strongly for ~500ms
+
+### Troubleshooting This Setup
+
+| Issue | Solution |
+|---|---|
+| No sound output | Verify MIDI port is selected in Settings; check VST host is receiving MIDI from loopMIDI; check synth is responding to Note On events |
+| Head tracking not working | Verify NITHwebcamWrapper is running; check webcam permissions in Windows; try restarting NITHwebcamWrapper |
+| No modulation effect | Verify CC 1 (Modulation) is mapped in your VST instrument; enable "Modul." toggle in Settings; set source to Mouth |
+| Mouse cursor causing issues | Click the Cursor toggle (🖱️) in top bar to hide it for cleaner visuals |
+
 ## Synth Configuration
 
 HeadBower sends MIDI messages to a synthesizer. Configure your synthesizer to respond to the following message types on the configured MIDI channel:
@@ -283,6 +380,3 @@ For issues, questions, or contributions, please refer to the project repositorie
 - HeadBower: https://github.com/LIMUNIMI/HeadBower
 - NITHlibrary: https://github.com/LIMUNIMI/NITHlibrary
 
----
-
-**Enjoy making music with HeadBower!** 🎻🎶

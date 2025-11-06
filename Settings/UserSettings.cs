@@ -338,13 +338,13 @@ namespace HeadBower.Settings
 
         /// <summary>
         /// Alpha filter for head yaw velocity smoothing.
-        /// Range: 0.1 (heavy smoothing) to 1.0 (no smoothing).
+        /// Range: 0.05 (heavy smoothing) to 1.0 (no smoothing).
         /// Affects the exponential moving average filter in HeadMotionCalculator.
         /// </summary>
         public float YawFilterAlpha
         {
             get => _yawFilterAlpha;
-            set => SetProperty(ref _yawFilterAlpha, Math.Max(0.1f, Math.Min(1.0f, value)));
+            set => SetProperty(ref _yawFilterAlpha, Math.Max(0.05f, Math.Min(1.0f, value)));
         }
 
         /// <summary>

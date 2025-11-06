@@ -250,7 +250,7 @@
         </TabControl>
 
         <!-- SETTINGS panel -->
-        <Border Name="brdSettings" Grid.Row="1" HorizontalAlignment="Left" Width="1100" Height="Auto" Margin="5,5,5,5" CornerRadius="10" Visibility="Visible">
+        <Border Name="brdSettings" Grid.Row="1" HorizontalAlignment="Stretch" Margin="5,5,5,5" CornerRadius="10" Visibility="Visible">
             <Border.Background>
                 <ImageBrush ImageSource="Images/Backgrounds/LightWood.jpg" TileMode="Tile" />
             </Border.Background>
@@ -259,6 +259,7 @@
                     <ColumnDefinition Width="1*" />
                     <ColumnDefinition Width="1*" />
                     <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1.2*" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Left Column: Port and Sensor Settings -->
@@ -366,11 +367,6 @@
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="1" Style="{StaticResource LCDBorder}"/>
                     </Grid>
-                    <Border Style="{StaticResource BlackBorder}" Height="197" Width="232" HorizontalAlignment="Left" VerticalAlignment="Top">
-                        <ScrollViewer x:Name="scrConsole" VerticalScrollBarVisibility="Auto">
-                            <TextBlock x:Name="txtConsole" Style="{StaticResource WhiteText}" Text="txtMiniConsoleTest" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                    </Border>
                 </StackPanel>
 
                 <!-- Middle Column: Interaction Settings -->
@@ -557,6 +553,16 @@
                         </Grid>
                     </StackPanel>
                 </StackPanel>
+
+                <!-- NEW Right Column: Console Output (Full Height) -->
+                <Border Grid.Column="3" Style="{StaticResource BlackBorder}" Margin="5,0,0,0">
+                    <StackPanel Orientation="Vertical">
+                        <Label Content="Console Output" FontWeight="Bold" />
+                        <ScrollViewer x:Name="scrConsole" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="txtConsole" Style="{StaticResource WhiteText}" Text="Console ready..." TextWrapping="Wrap" Margin="5,5,5,5"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
     </Grid>

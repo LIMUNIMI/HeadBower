@@ -58,7 +58,11 @@ namespace HeadBower.Behaviors.HeadBow
                 // Apply phone vibration sensitivity multiplier and clamp to 0-255
                 duration = Math.Clamp((int)(duration * Rack.UserSettings.PhoneVibrationSensitivity), 0, 255);
                 amplitude = Math.Clamp((int)(amplitude * Rack.UserSettings.PhoneVibrationSensitivity), 0, 255);
-                string vibrationCommand = $"VIB:{duration}:{amplitude}";
+                
+                // Build command using new NITH protocol format
+                // Format: $HeadBower-0.1.0|COM|vibration_intensity=value&vibration_duration=value^
+                string vibrationCommand = VibrationCommandBuilder.BuildCommand(amplitude, duration);
+                
                 if (Rack.NithSenderPhone != null)
                 {
                     Rack.NithSenderPhone.SendData(vibrationCommand);

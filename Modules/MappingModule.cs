@@ -342,9 +342,9 @@ namespace HeadBower.Modules
         #region Head Tracking Source Selection
 
         /// <summary>
-        /// Configures the parameter selector to whitelist head motion parameters from the selected source
-        /// and block them from all other sources.
-        /// ALWAYS whitelists: mouth_ape, eye apertures (from webcam), gaze parameters (from eye tracker).
+        /// Configures the parameter selector to block head motion parameters from non-selected sources.
+        /// Uses BLACKLIST mode: all parameters pass through by default, except head motion from other sources.
+        /// This ensures mouth_ape, gaze, and other parameters work regardless of head tracking source.
         /// </summary>
         /// <param name="source">The head tracking source to enable</param>
         public static void SelectHeadTrackingSource(HeadTrackingSources source)
@@ -352,37 +352,14 @@ namespace HeadBower.Modules
             // Clear all existing rules
             Rack.ParameterSelector.ClearAllRules();
 
+            // Switch to BLACKLIST mode - all parameters pass through EXCEPT blocked ones
+            Rack.ParameterSelector.Mode = NITHlibrary.Nith.Preprocessors.NithPreprocessor_ParameterSelector.FilterMode.Blacklist;
+
             // Get the sensor name for this source
             string selectedSensorName = GetSensorNameForSource(source);
 
-            // Whitelist all head motion parameters for the selected source
-            Rack.ParameterSelector.AddRulesList(selectedSensorName, AllHeadMotionParameters);
-
-            // CRITICAL: Whitelist mouth parameters from WEBCAM ONLY
-            // The webcam is the ONLY source that sends mouth_ape, eyeLeft_ape, eyeRight_ape
-            // These must ALWAYS be whitelisted regardless of selected head tracking source
-            // This ensures mouth gate, modulation control, and bow pressure control work with all head tracking sources
-            
-            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.mouth_ape);
-            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeLeft_ape);
-            Rack.ParameterSelector.AddRule("NITHwebcamWrapper", NithParameters.eyeRight_ape);
-            
-            // ADDITIONAL FIX: Also whitelist mouth parameters from the SELECTED SOURCE
-            // Some sensors (phone, eye tracker) may merge/forward webcam data with their own SensorName
-            // This ensures mouth gate works even when data is merged
-            if (selectedSensorName != "NITHwebcamWrapper")
-            {
-                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.mouth_ape);
-                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.eyeLeft_ape);
-                Rack.ParameterSelector.AddRule(selectedSensorName, NithParameters.eyeRight_ape);
-            }
-            
-            // ALWAYS whitelist gaze from eye tracker (needed for gaze-to-mouse control)
-            Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_x);
-            Rack.ParameterSelector.AddRule("NITHeyetrackerWrapper", NithParameters.gaze_y);
-
-            // Block head motion parameters from all OTHER sources
-            BlockHeadMotionFromOtherSources(source);
+            // Block head motion parameters from all OTHER sources (not the selected one)
+            BlockHeadMotionFromOtherSources(source, selectedSensorName);
 
             // Log configuration
             LogSelectionConfiguration(source);
@@ -403,10 +380,11 @@ namespace HeadBower.Modules
         }
 
         /// <summary>
-        /// Blocks head motion parameters from all sources except the selected one.
-        /// This ensures only one source provides head motion data at a time.
+        /// Blocks head motion parameters from all sources EXCEPT the selected one.
+        /// In blacklist mode, only explicitly blocked parameters are filtered out.
+        /// This ensures mouth_ape, gaze, and other parameters always pass through.
         /// </summary>
-        private static void BlockHeadMotionFromOtherSources(HeadTrackingSources selectedSource)
+        private static void BlockHeadMotionFromOtherSources(HeadTrackingSources selectedSource, string selectedSensorName)
         {
             var allSources = new[]
             {
@@ -417,11 +395,11 @@ namespace HeadBower.Modules
 
             foreach (var (source, sensorName) in allSources)
             {
+                // Block head motion from all sources EXCEPT the selected one
                 if (source != selectedSource)
                 {
-                    // In Whitelist mode, not adding rules = blocking all parameters
-                    // So we don't need to do anything for non-selected sources
-                    // They will be automatically blocked
+                    // Block all head motion parameters from this non-selected source
+                    Rack.ParameterSelector.AddRulesList(sensorName, AllHeadMotionParameters);
                 }
             }
         }
@@ -431,22 +409,31 @@ namespace HeadBower.Modules
         /// </summary>
         private static void LogSelectionConfiguration(HeadTrackingSources source)
         {
-            Console.WriteLine("\n=== HEAD TRACKING SOURCE SELECTION ===");
-            Console.WriteLine($"Selected Source: {source}");
-            Console.WriteLine($"Sensor Name Mapping:");
-            Console.WriteLine($"  Webcam → NITHwebcamWrapper");
-            Console.WriteLine($"  Phone → NITHphoneWrapper");
-            Console.WriteLine($"  Eye Tracker → NITHeyetrackerWrapper");
-            Console.WriteLine($"\nParameter Selector Rules:");
+            Console.WriteLine("\n========================================");
+            Console.WriteLine("  HEAD TRACKING SOURCE SELECTION");
+            Console.WriteLine("========================================");
+            Console.WriteLine($"  Selected Source: {source}");
+            Console.WriteLine($"\n  Sensor Name Mapping:");
+            Console.WriteLine($"    Webcam ------> NITHwebcamWrapper");
+            Console.WriteLine($"    Phone -------> NITHphoneWrapper");
+            Console.WriteLine($"    Eye Tracker -> NITHeyetrackerWrapper");
+            Console.WriteLine($"\n  Parameter Selector Mode: BLACKLIST");
+            Console.WriteLine($"  (All params pass through EXCEPT explicitly blocked ones)");
+            Console.WriteLine($"\n  Blocked Parameters (HEAD MOTION ONLY):");
             Console.WriteLine(Rack.ParameterSelector.GetRulesSummary());
-            Console.WriteLine("=====================================\n");
+            Console.WriteLine($"\n  CRITICAL: mouth_ape from webcam should ALWAYS pass through!");
+            Console.WriteLine($"  It is NOT in the blocked list above (only head motion params are blocked).");
+            Console.WriteLine("========================================\n");
             
             // Log receiver connection status
-            Console.WriteLine("=== RECEIVER CONNECTION STATUS ===");
-            Console.WriteLine($"Webcam (port 20100): {(Rack.UDPreceiverWebcam?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
-            Console.WriteLine($"Eye Tracker (port 20102): {(Rack.UDPreceiverEyeTracker?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
-            Console.WriteLine($"Phone (port {(int)NithWrappersReceiverPorts.NITHphoneWrapper}): {(Rack.UDPreceiverPhone?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
-            Console.WriteLine("=====================================\n");
+            Console.WriteLine("  RECEIVER CONNECTION STATUS");
+            Console.WriteLine("========================================");
+            Console.WriteLine($"  Webcam (port 20100): {(Rack.UDPreceiverWebcam?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
+            Console.WriteLine($"  Eye Tracker (port 20102): {(Rack.UDPreceiverEyeTracker?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
+            Console.WriteLine($"  Phone (port {(int)NithWrappersReceiverPorts.NITHphoneWrapper}): {(Rack.UDPreceiverPhone?.IsConnected == true ? "CONNECTED" : "DISCONNECTED")}");
+            Console.WriteLine($"\n  NOTE: If mouth gate is not working with Phone/Eye Tracker selected,");
+            Console.WriteLine($"  check if NITHwebcamWrapper is running!");
+            Console.WriteLine("========================================\n");
         }
 
         #endregion Head Tracking Source Selection

@@ -80,4 +80,8 @@
     <Resource Include="Images\Sparks\spark3.gif" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Screenshots\" />
+  </ItemGroup>
+
 </Project>

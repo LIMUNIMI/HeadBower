@@ -433,8 +433,9 @@ namespace HeadBower
         {
             try
             {
-                // Invia una vibrazione di test forte e lunga che sarà facilmente riconoscibile
-                string testCommand = "VIB:500:255";
+                // Send a strong test vibration that will be easily recognizable
+                // Using new NITH protocol format: $HeadBower-0.1.0|COM|vibration_intensity=value&vibration_duration=value^
+                string testCommand = VibrationCommandBuilder.BuildCommand(255, 500);
 
                 if (Rack.NithSenderPhone != null && Rack.UDPsenderPhone != null)
                 {

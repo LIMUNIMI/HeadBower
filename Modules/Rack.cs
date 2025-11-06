@@ -38,6 +38,7 @@ namespace HeadBower.Modules
         public static NithPreprocessor_HeadTrackerCalibrator UnifiedHeadTrackerCalibrator { get; set; }
         public static NithPreprocessor_SourceNormalizer SourceNormalizer { get; set; }
         public static NithPreprocessor_HeadMotionCalculator HeadMotionCalculator { get; set; }
+        public static NithPreprocessor_MAfilterParams YawSmoothingFilter { get; set; }
 
         // Behaviors
         public static BowMotionBehavior Behavior_BowMotion { get; set; }

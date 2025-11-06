@@ -159,13 +159,16 @@ namespace HeadBower.Modules
 
             // 6. Smoothing filters
             // NOTE: These filter velocities for intensity but do NOT affect direction parameters
-            Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_MAfilterParams(
+            Rack.YawSmoothingFilter = new NithPreprocessor_MAfilterParams(
                 new List<NithParameters>
                 {
-                    NithParameters.head_pos_pitch
+                    NithParameters.head_pos_pitch,
+                    NithParameters.head_acc_yaw,  // Smooths phone accelerometer data
+                    NithParameters.head_vel_yaw   // Smooths yaw velocity from any source
                     // Direction parameters (head_direction_*) are NOT filtered here - they remain instant!
                 },
-                0.5f));
+                Rack.UserSettings.YawFilterAlpha);  // Use user setting instead of hardcoded value
+            Rack.NithModuleUnified.Preprocessors.Add(Rack.YawSmoothingFilter);
 
             Rack.NithModuleUnified.Preprocessors.Add(new NithPreprocessor_MAfilterParams(
                 new List<NithParameters>
@@ -242,6 +245,26 @@ namespace HeadBower.Modules
                 else if (e.PropertyName == nameof(Rack.UserSettings.YawFilterAlpha))
                 {
                     Rack.HeadMotionCalculator.SetFilterAlpha(Rack.UserSettings.YawFilterAlpha);
+                    
+                    // Recreate yaw smoothing filter with new alpha value
+                    // Remove old filter from preprocessors
+                    if (Rack.YawSmoothingFilter != null)
+                    {
+                        Rack.NithModuleUnified.Preprocessors.Remove(Rack.YawSmoothingFilter);
+                    }
+                    
+                    // Create new filter with updated alpha
+                    Rack.YawSmoothingFilter = new NithPreprocessor_MAfilterParams(
+                        new List<NithParameters>
+                        {
+                            NithParameters.head_pos_pitch,
+                            NithParameters.head_acc_yaw,
+                            NithParameters.head_vel_yaw
+                        },
+                        Rack.UserSettings.YawFilterAlpha);
+                    
+                    // Insert back at the same position (after source normalizer)
+                    Rack.NithModuleUnified.Preprocessors.Add(Rack.YawSmoothingFilter);
                 }
                 // Update bowing mode (linear vs logarithmic)
                 else if (e.PropertyName == nameof(Rack.UserSettings.UseLogarithmicBowing))
@@ -255,6 +278,11 @@ namespace HeadBower.Modules
 
             // Add behaviors to unified module
             // CRITICAL ORDER: MouthClosedNotePrevention MUST run BEFORE BowMotion to set gate state
+            
+            // DIAGNOSTIC BEHAVIOR - ENABLED to debug sensor data reception issues
+            // This will log which sensors are sending data and how often
+            Rack.NithModuleUnified.SensorBehaviors.Add(new Behaviors.DiagnosticBehavior());
+            
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_MouthClosedNotePrevention); // FIRST - sets gate state
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_BowMotion);                 // SECOND - respects gate
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_ModulationControl);
@@ -265,10 +293,6 @@ namespace HeadBower.Modules
             
             // Visual feedback LAST (always runs, always has final say on visual state)
             Rack.NithModuleUnified.SensorBehaviors.Add(Rack.Behavior_VisualFeedback);
-            
-            // DIAGNOSTIC BEHAVIOR - Uncomment to debug sensor data reception issues
-            // This will log which sensors are sending data and how often
-            // Rack.NithModuleUnified.SensorBehaviors.Add(new Behaviors.DiagnosticBehavior());
         }
 
         private void AddDisposables()
