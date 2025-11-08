@@ -19,6 +19,8 @@ HeadBower transforms subtle head movements (yaw, pitch, roll) and facial express
 3. Install a MIDI-compatible synthesizer or virtual instrument (see recommendations below)
 4. Launch `HeadBower.exe`
 
+NOTE: you will be asked to enable network functionality. This is because Headbower utilizes UDP connections over wifi to get sensor data over port 20103.
+
 ### Initial Setup
 1. **MIDI Configuration**: In the Settings panel (gear icon), select your desired MIDI output port using the ⮜/⮞ buttons
 2. **Head Tracking Source**: Choose your preferred tracking method:
