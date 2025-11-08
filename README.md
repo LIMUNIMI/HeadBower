@@ -13,6 +13,7 @@ HeadBower transforms subtle head movements (yaw, pitch, roll) and facial express
 ## Quick Start
 
 ### Installation
+0. Download the latest [Release](https://github.com/LIMUNIMI/HeadBower/releases)
 1. Extract the HeadBower ZIP file to a folder on your Windows PC
 2. Ensure you have a MIDI output device or virtual MIDI port installed (e.g., loopMIDI, Microsoft GS Wavetable Synth)
 3. Install a MIDI-compatible synthesizer or virtual instrument (see recommendations below)
