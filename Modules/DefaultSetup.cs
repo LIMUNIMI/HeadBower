@@ -99,8 +99,12 @@ namespace HeadBower.Modules
             Rack.NithSenderPhone.PortListeners.Add(Rack.UDPsenderPhone);
 
             // USB receiver (optional head tracker)
-            Rack.USBreceiverHeadTracker = new USBreceiver();
-            Rack.USBreceiverHeadTracker.MaxSamplesPerSecond = 80;
+            Rack.USBreceiverHeadTracker1 = new USBreceiver();
+            Rack.USBreceiverHeadTracker1.MaxSamplesPerSecond = 80;
+            
+            // USB receiver 2 (optional second head tracker)
+            Rack.USBreceiverHeadTracker2 = new USBreceiver();
+            Rack.USBreceiverHeadTracker2.MaxSamplesPerSecond = 80;
         }
 
         private void SetupUnifiedModule()
@@ -181,7 +185,8 @@ namespace HeadBower.Modules
             Rack.UDPreceiverWebcam.Listeners.Add(Rack.NithModuleUnified);
             Rack.UDPreceiverEyeTracker.Listeners.Add(Rack.NithModuleUnified);
             Rack.UDPreceiverPhone.Listeners.Add(Rack.NithModuleUnified);
-            Rack.USBreceiverHeadTracker.Listeners.Add(Rack.NithModuleUnified);
+            Rack.USBreceiverHeadTracker1.Listeners.Add(Rack.NithModuleUnified);
+            Rack.USBreceiverHeadTracker2.Listeners.Add(Rack.NithModuleUnified);
         }
 
         private void SetupBehaviors()
@@ -297,7 +302,8 @@ namespace HeadBower.Modules
 
         private void AddDisposables()
         {
-            disposables.Add(Rack.USBreceiverHeadTracker);
+            disposables.Add(Rack.USBreceiverHeadTracker1);
+            disposables.Add(Rack.USBreceiverHeadTracker2);
             disposables.Add(Rack.UDPreceiverEyeTracker);
             disposables.Add(Rack.UDPreceiverWebcam);
             disposables.Add(Rack.UDPreceiverPhone);

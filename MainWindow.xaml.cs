@@ -54,6 +54,30 @@ namespace HeadBower
             }
         }
 
+        public int SensorPort1
+        {
+            get { return Rack.UserSettings.SensorPort1; }
+            set
+            {
+                if (value > 0)
+                {
+                    Rack.UserSettings.SensorPort1 = value;
+                }
+            }
+        }
+
+        public int SensorPort2
+        {
+            get { return Rack.UserSettings.SensorPort2; }
+            set
+            {
+                if (value > 0)
+                {
+                    Rack.UserSettings.SensorPort2 = value;
+                }
+            }
+        }
+
         private void btnBlinkPlay_Click(object sender, RoutedEventArgs e)
         {
         }
@@ -152,6 +176,24 @@ namespace HeadBower
             }
         }
 
+        private void btnModSourceBreath_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.BreathPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceTeeth_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.TeethPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
         // Removed: btnModSourceRoll_Click - Roll modulation source has been removed
 
         private void btnBowPressureSourcePitch_Click(object sender, RoutedEventArgs e)
@@ -172,25 +214,95 @@ namespace HeadBower
             }
         }
 
-        private void btnPressureSourceYaw_Click(object sender, RoutedEventArgs e)
+        private void btnBowPressureSourceBreath_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
-                Rack.UserSettings.PressureControlSource = PressureControlSources.HeadYawVelocity;
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.BreathPressure;
                 // Rendering loop handles UI update
             }
         }
 
-        private void btnPressureSourceMouth_Click(object sender, RoutedEventArgs e)
+        private void btnBowPressureSourceTeeth_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
-                Rack.UserSettings.PressureControlSource = PressureControlSources.MouthAperture;
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.TeethPressure;
                 // Rendering loop handles UI update
             }
         }
 
-        private void btnModulationControlSwitch_Click(object sender, RoutedEventArgs e)
+        private void btnExit_Activated(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void btnExit_Click_1(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void btnBlinkPlay_Click_1(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void btnBlinkSelectScale_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                switch (Rack.UserSettings.BlinkSelectScaleMode)
+                {
+                    case _BlinkSelectScaleMode.Off:
+                        Rack.UserSettings.BlinkSelectScaleMode = _BlinkSelectScaleMode.On;
+                        break;
+
+                    case _BlinkSelectScaleMode.On:
+                        Rack.UserSettings.BlinkSelectScaleMode = _BlinkSelectScaleMode.Off;
+                        break;
+                }
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnCalibrateHeadPose_MouseLeave_1(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            //btnCalibrateHeadPose.Background = new SolidColorBrush(Colors.Black);
+        }
+
+        private void btnExit_Activated_1(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void BtnExit_Click_2(object sender, RoutedEventArgs e)
+        {
+            Rack.SavingSystem.SaveSettings(Rack.UserSettings);
+            Close();
+        }
+
+        private void BtnFFBTest_Click_1(object sender, RoutedEventArgs e)
+        {
+            //Rack.DMIBox.FfbModule.FlashFFB();
+        }
+
+        private void BtnMIDIchMinus_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.MIDIPort--;
+                Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnMIDIchPlus_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.MIDIPort++;
+                Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnMod_Click_1(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
@@ -199,40 +311,213 @@ namespace HeadBower
             }
         }
 
-        private void btnNeutral_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void btnNoCursor_Click(object sender, RoutedEventArgs e)
+        private void btnBowPress_Click_1(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
-                Rack.MappingModule.CursorHidden = !Rack.MappingModule.CursorHidden;
-                Cursor = Rack.MappingModule.CursorHidden ? System.Windows.Input.Cursors.None : System.Windows.Input.Cursors.Arrow;
+                Rack.UserSettings.BowPressureControlMode = Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On ? _BowPressureControlModes.Off : _BowPressureControlModes.On;
                 // Rendering loop handles UI update
             }
         }
 
-        private void BtnScroll_Click(object sender, RoutedEventArgs e)
-        {
-            Rack.AutoScroller.Enabled = !Rack.AutoScroller.Enabled;
-        }
-
-        private void BtnSensorPortMinus_Click(object sender, RoutedEventArgs e)
+        private void btnModSourcePitch_Click_1(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
-                SensorPort--;
-                UpdateSensorConnection();
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadPitch;
+                // Rendering loop handles UI update
             }
         }
 
-        private void BtnSensorPortPlus_Click(object sender, RoutedEventArgs e)
+        private void btnModSourceMouth_Click_1(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
             {
-                SensorPort++;
-                UpdateSensorConnection();
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.MouthAperture;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceBreath_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.BreathPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceTeeth_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.TeethPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        // Removed: btnModSourceRoll_Click - Roll modulation source has been removed
+
+        private void btnBowPressureSourcePitch_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.HeadPitch;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceMouth_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.MouthAperture;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceBreath_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.BreathPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceTeeth_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.TeethPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnExit_Activated_2(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void btnExit_Click_3(object sender, RoutedEventArgs e)
+        {
+            Rack.SavingSystem.SaveSettings(Rack.UserSettings);
+            Close();
+        }
+
+        private void BtnFFBTest_Click_2(object sender, RoutedEventArgs e)
+        {
+            //Rack.DMIBox.FfbModule.FlashFFB();
+        }
+
+        private void BtnMIDIchMinus_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.MIDIPort--;
+                Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void BtnMIDIchPlus_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.MIDIPort++;
+                Rack.MidiModule.OutDevice = Rack.UserSettings.MIDIPort;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnMod_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlMode = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? _ModulationControlModes.Off : _ModulationControlModes.On;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPress_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlMode = Rack.UserSettings.BowPressureControlMode == _BowPressureControlModes.On ? _BowPressureControlModes.Off : _BowPressureControlModes.On;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourcePitch_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.HeadPitch;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceMouth_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.MouthAperture;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceBreath_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.BreathPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnModSourceTeeth_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.ModulationControlSource = ModulationControlSources.TeethPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        // Removed: btnModSourceRoll_Click - Roll modulation source has been removed
+
+        private void btnBowPressureSourcePitch_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.HeadPitch;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceMouth_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.MouthAperture;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceBreath_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.BreathPressure;
+                // Rendering loop handles UI update
+            }
+        }
+
+        private void btnBowPressureSourceTeeth_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.BowPressureControlSource = BowPressureControlSources.TeethPressure;
+                // Rendering loop handles UI update
             }
         }
 
@@ -349,9 +634,11 @@ namespace HeadBower
 
         private void UpdateSensorConnection()
         {
-            txtSensorPort.Text = "COM" + SensorPort.ToString();
-
-            txtSensorPort.Foreground = Rack.USBreceiverHeadTracker.Connect(SensorPort) ? ActiveBrush : WarningBrush;
+            txtSensorPort1.Text = "COM" + SensorPort1.ToString();
+            txtSensorPort1.Foreground = Rack.USBreceiverHeadTracker1.Connect(SensorPort1) ? ActiveBrush : WarningBrush;
+            
+            txtSensorPort2.Text = "COM" + SensorPort2.ToString();
+            txtSensorPort2.Foreground = Rack.USBreceiverHeadTracker2.Connect(SensorPort2) ? ActiveBrush : WarningBrush;
         }
 
         #region Global SettingsButtons
@@ -506,6 +793,16 @@ namespace HeadBower
             }
         }
 
+        private void btnNITHheadTracker_Click(object sender, RoutedEventArgs e)
+        {
+            if (InstrumentStarted)
+            {
+                Rack.UserSettings.HeadTrackingSource = HeadTrackingSources.NITHheadTracker;
+                UpdateHeadTrackingSource();
+                // Rendering loop handles UI update
+            }
+        }
+
         private void btnCircle_Click(object sender, RoutedEventArgs e)
         {
             if (InstrumentStarted)
@@ -633,6 +930,9 @@ namespace HeadBower
                     case HeadTrackingSources.EyeTracker:
                         Rack.UserSettings.EyeTrackerPitchSensitivity -= 0.1f;
                         break;
+                    case HeadTrackingSources.NITHheadTracker:
+                        // NITHheadTracker doesn't have adjustable pitch sensitivity in current implementation
+                        break;
                 }
                 // Settings auto-save and PropertyChanged triggers SourceNormalizer update
                 // Rendering loop handles UI update
@@ -654,6 +954,9 @@ namespace HeadBower
                         break;
                     case HeadTrackingSources.EyeTracker:
                         Rack.UserSettings.EyeTrackerPitchSensitivity += 0.1f;
+                        break;
+                    case HeadTrackingSources.NITHheadTracker:
+                        // NITHheadTracker doesn't have adjustable pitch sensitivity in current implementation
                         break;
                 }
                 // Settings auto-save and PropertyChanged triggers SourceNormalizer update

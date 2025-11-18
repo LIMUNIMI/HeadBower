@@ -10,7 +10,8 @@
     {
         EyeTracker,
         Webcam,
-        Phone
+        Phone,
+        NITHheadTracker
     }
 
     public enum _ModulationControlModes
@@ -28,13 +29,17 @@
     public enum ModulationControlSources
     {
         HeadPitch,
-        MouthAperture
+        MouthAperture,
+        BreathPressure,
+        TeethPressure
     }
 
     public enum BowPressureControlSources
     {
         HeadPitch,
-        MouthAperture
+        MouthAperture,
+        BreathPressure,
+        TeethPressure
     }
 
     public enum PressureControlSources

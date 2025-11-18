@@ -25,7 +25,8 @@ namespace HeadBower.Modules
         public static UDPreceiver UDPreceiverPhone { get; set; }
         public static UDPreceiver UDPreceiverWebcam { get; set; }
         public static UDPreceiver UDPreceiverEyeTracker { get; set; }
-        public static USBreceiver USBreceiverHeadTracker { get; set; }
+        public static USBreceiver USBreceiverHeadTracker1 { get; set; }
+        public static USBreceiver USBreceiverHeadTracker2 { get; set; }
         
         // Network senders
         public static UDPsender UDPsenderPhone { get; set; }

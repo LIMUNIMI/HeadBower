@@ -121,7 +121,8 @@ namespace HeadBower.Modules
                 
                 // TEXT FIELDS
                 InstrumentWindow.txtMIDIch.Text = "MP" + Rack.MidiModule.OutDevice.ToString();
-                InstrumentWindow.txtSensorPort.Text = "COM" + Rack.UserSettings.SensorPort.ToString();
+                InstrumentWindow.txtSensorPort1.Text = "COM" + Rack.UserSettings.SensorPort1.ToString();
+                InstrumentWindow.txtSensorPort2.Text = "COM" + Rack.UserSettings.SensorPort2.ToString();
 
                 // INTERACTION MODE INDICATORS
                 InstrumentWindow.indHeadBow.Background = Rack.UserSettings.InteractionMapping == InteractionMappings.HeadBow ? ActiveBrush : BlankBrush;
@@ -130,6 +131,7 @@ namespace HeadBower.Modules
                 InstrumentWindow.indEyeTracker.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.EyeTracker ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indWebcam.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Webcam ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indPhone.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.Phone ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indNITHheadTracker.Background = Rack.UserSettings.HeadTrackingSource == HeadTrackingSources.NITHheadTracker ? ActiveBrush : BlankBrush;
                 
                 // FEATURE TOGGLE INDICATORS
                 InstrumentWindow.indMod.Background = Rack.UserSettings.ModulationControlMode == _ModulationControlModes.On ? ActiveBrush : BlankBrush;
@@ -145,10 +147,14 @@ namespace HeadBower.Modules
                 // MODULATION SOURCE INDICATORS
                 InstrumentWindow.indModSourcePitch.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.HeadPitch ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indModSourceMouth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indModSourceBreath.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.BreathPressure ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indModSourceTeeth.Background = Rack.UserSettings.ModulationControlSource == ModulationControlSources.TeethPressure ? ActiveBrush : BlankBrush;
                 
                 // BOW PRESSURE SOURCE INDICATORS
                 InstrumentWindow.indBowPressureSourcePitch.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.HeadPitch ? ActiveBrush : BlankBrush;
                 InstrumentWindow.indBowPressureSourceMouth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.MouthAperture ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indBowPressureSourceBreath.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.BreathPressure ? ActiveBrush : BlankBrush;
+                InstrumentWindow.indBowPressureSourceTeeth.Background = Rack.UserSettings.BowPressureControlSource == BowPressureControlSources.TeethPressure ? ActiveBrush : BlankBrush;
 
                 // PRESSURE (INTENSITY) SOURCE INDICATORS
                 InstrumentWindow.indPressureSourceYaw.Background = Rack.UserSettings.PressureControlSource == PressureControlSources.HeadYawVelocity ? ActiveBrush : BlankBrush;
@@ -180,6 +186,7 @@ namespace HeadBower.Modules
                             HeadTrackingSources.Webcam => Rack.UserSettings.WebcamPitchSensitivity,
                             HeadTrackingSources.Phone => Rack.UserSettings.PhonePitchSensitivity,
                             HeadTrackingSources.EyeTracker => Rack.UserSettings.EyeTrackerPitchSensitivity,
+                            HeadTrackingSources.NITHheadTracker => 1.0f, // NITHheadTracker uses default sensitivity
                             _ => 1.0f
                         };
                         InstrumentWindow.txtPitchSensitivity.Text = currentPitchSensitivity.ToString("F1");

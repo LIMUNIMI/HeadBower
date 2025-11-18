@@ -9,6 +9,8 @@ namespace HeadBower.Behaviors.HeadBow
     /// Controls MIDI modulation (CC1) based on various input sources:
     /// - Head pitch rotation (with deadzone)
     /// - Mouth aperture (percentage 0-100)
+    /// - Breath pressure (0-100 normalized, mapped to 0-127 with deadzones at 10 and 90)
+    /// - Teeth pressure (0-100 normalized, mapped to 0-127 with deadzones at 10 and 90)
     /// Does NOT update visual feedback - that's handled by VisualFeedbackBehavior.
     /// </summary>
     public class ModulationControlBehavior : INithSensorBehavior
@@ -25,17 +27,37 @@ namespace HeadBower.Behaviors.HeadBow
             NithParameters.mouth_ape
         };
 
+        // Required parameters for breath pressure mode
+        private readonly List<NithParameters> requiredParamsBreath = new List<NithParameters>
+        {
+            NithParameters.breath_press
+        };
+
+        // Required parameters for teeth pressure mode
+        private readonly List<NithParameters> requiredParamsTeeth = new List<NithParameters>
+        {
+            NithParameters.teeth_press
+        };
+
         // Filters for each input source
         private readonly DoubleFilterMAexpDecaying _pitchPosFilter = new DoubleFilterMAexpDecaying(0.9f);
         private readonly DoubleFilterMAexpDecaying _mouthApertureFilter = new DoubleFilterMAexpDecaying(0.7f);
+        private readonly DoubleFilterMAexpDecaying _breathPressureFilter = new DoubleFilterMAexpDecaying(0.7f);
+        private readonly DoubleFilterMAexpDecaying _teethPressureFilter = new DoubleFilterMAexpDecaying(0.7f);
 
         // Constants for mouth aperture (0-100 percentage range from webcam wrapper)
         private const double MOUTH_APERTURE_THRESHOLD = 15.0;
         private const double MOUTH_APERTURE_MAX = 80.0;
+        private const double BREATH_DEADZONE_LOW = 10.0;
+        private const double BREATH_DEADZONE_HIGH = 90.0;
+        private const double TEETH_DEADZONE_LOW = 10.0;
+        private const double TEETH_DEADZONE_HIGH = 90.0;
         
         // Pre-create mappers to avoid allocations every frame
         private SegmentMapper _pitchMapper;
         private SegmentMapper _mouthMapper;
+        private SegmentMapper _breathMapper;
+        private SegmentMapper _teethMapper;
         private double _lastPitchThreshold = 0;
         private double _lastPitchRange = 0;
 
@@ -54,9 +76,14 @@ namespace HeadBower.Behaviors.HeadBow
                 ModulationControlSources currentSource = Rack.UserSettings.ModulationControlSource;
                 
                 // Select appropriate parameter list based on source
-                List<NithParameters> requiredParams = currentSource == ModulationControlSources.HeadPitch 
-                    ? requiredParamsPitch 
-                    : requiredParamsMouth;
+                List<NithParameters> requiredParams = currentSource switch
+                {
+                    ModulationControlSources.HeadPitch => requiredParamsPitch,
+                    ModulationControlSources.MouthAperture => requiredParamsMouth,
+                    ModulationControlSources.BreathPressure => requiredParamsBreath,
+                    ModulationControlSources.TeethPressure => requiredParamsTeeth,
+                    _ => requiredParamsPitch
+                };
 
                 // ONLY process if ALL required parameters are present
                 if (nithData.ContainsParameters(requiredParams))
@@ -110,6 +137,66 @@ namespace HeadBower.Behaviors.HeadBow
                                     _mouthMapper = new SegmentMapper(MOUTH_APERTURE_THRESHOLD, MOUTH_APERTURE_MAX, 0, 127, true);
                                 }
                                 modulationValue = (int)_mouthMapper.Map(filteredMouthAperture);
+                            }
+                            break;
+
+                        case ModulationControlSources.BreathPressure:
+                            // Get normalized breath pressure (0-100 range)
+                            var breathParam = nithData.GetParameterValue(NithParameters.breath_press);
+                            if (breathParam.HasValue)
+                            {
+                                double rawBreathPressure = breathParam.Value.ValueAsDouble;
+                                _breathPressureFilter.Push(rawBreathPressure);
+                                double filteredBreathPressure = _breathPressureFilter.Pull();
+
+                                // Apply deadzones at 10 and 90
+                                if (filteredBreathPressure <= BREATH_DEADZONE_LOW)
+                                {
+                                    modulationValue = 0;
+                                }
+                                else if (filteredBreathPressure >= BREATH_DEADZONE_HIGH)
+                                {
+                                    modulationValue = 127;
+                                }
+                                else
+                                {
+                                    // Map from 10-90 range to 0-127
+                                    if (_breathMapper == null)
+                                    {
+                                        _breathMapper = new SegmentMapper(BREATH_DEADZONE_LOW, BREATH_DEADZONE_HIGH, 0, 127, true);
+                                    }
+                                    modulationValue = (int)_breathMapper.Map(filteredBreathPressure);
+                                }
+                            }
+                            break;
+
+                        case ModulationControlSources.TeethPressure:
+                            // Get normalized teeth pressure (0-100 range)
+                            var teethParam = nithData.GetParameterValue(NithParameters.teeth_press);
+                            if (teethParam.HasValue)
+                            {
+                                double rawTeethPressure = teethParam.Value.ValueAsDouble;
+                                _teethPressureFilter.Push(rawTeethPressure);
+                                double filteredTeethPressure = _teethPressureFilter.Pull();
+
+                                // Apply deadzones at 10 and 90
+                                if (filteredTeethPressure <= TEETH_DEADZONE_LOW)
+                                {
+                                    modulationValue = 0;
+                                }
+                                else if (filteredTeethPressure >= TEETH_DEADZONE_HIGH)
+                                {
+                                    modulationValue = 127;
+                                }
+                                else
+                                {
+                                    // Map from 10-90 range to 0-127
+                                    if (_teethMapper == null)
+                                    {
+                                        _teethMapper = new SegmentMapper(TEETH_DEADZONE_LOW, TEETH_DEADZONE_HIGH, 0, 127, true);
+                                    }
+                                    modulationValue = (int)_teethMapper.Map(filteredTeethPressure);
+                                }
                             }
                             break;
                     }

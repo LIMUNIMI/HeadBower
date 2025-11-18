@@ -28,6 +28,10 @@ namespace HeadBower.Settings
         private AbsNotes _rootNote;
         private ScaleCodes _scaleCode;
         private int _sensorPort;
+        private int _sensorPort1 = 4;
+        private int _sensorPort2 = 5;
+        private int _sensorPort3 = 6;
+        private int _sensorPort4 = 7;
         private _SharpNotesModes _sharpNotesMode;
         private _SlidePlayModes _slidePlayMode;
         private int _verticalSpacer;
@@ -296,6 +300,30 @@ namespace HeadBower.Settings
         {
             get => _sensorPort;
             set => SetProperty(ref _sensorPort, value);
+        }
+
+        public int SensorPort1
+        {
+            get => _sensorPort1;
+            set => SetProperty(ref _sensorPort1, value);
+        }
+
+        public int SensorPort2
+        {
+            get => _sensorPort2;
+            set => SetProperty(ref _sensorPort2, value);
+        }
+
+        public int SensorPort3
+        {
+            get => _sensorPort3;
+            set => SetProperty(ref _sensorPort3, value);
+        }
+
+        public int SensorPort4
+        {
+            get => _sensorPort4;
+            set => SetProperty(ref _sensorPort4, value);
         }
 
         public _SharpNotesModes SharpNotesMode

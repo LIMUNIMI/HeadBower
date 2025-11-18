@@ -27,6 +27,8 @@ namespace HeadBower.Settings
             InteractionMapping = InteractionMappings.HeadBow;
             SlidePlayMode = _SlidePlayModes.Off;
             SensorPort = 4;
+            SensorPort1 = 4;
+            SensorPort2 = 5;
             MIDIPort = 1;
             RootNote = AbsNotes.C;
             ScaleCode = ScaleCodes.maj;

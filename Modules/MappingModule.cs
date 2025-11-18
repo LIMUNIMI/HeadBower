@@ -375,6 +375,7 @@ namespace HeadBower.Modules
                 HeadTrackingSources.Webcam => "NITHwebcamWrapper",
                 HeadTrackingSources.Phone => "NITHphoneWrapper",
                 HeadTrackingSources.EyeTracker => "NITHeyetrackerWrapper",
+                HeadTrackingSources.NITHheadTracker => "NITHheadTracker",
                 _ => throw new ArgumentException($"Unknown head tracking source: {source}")
             };
         }
@@ -390,7 +391,8 @@ namespace HeadBower.Modules
             {
                 (HeadTrackingSources.Webcam, "NITHwebcamWrapper"),
                 (HeadTrackingSources.Phone, "NITHphoneWrapper"),
-                (HeadTrackingSources.EyeTracker, "NITHeyetrackerWrapper")
+                (HeadTrackingSources.EyeTracker, "NITHeyetrackerWrapper"),
+                (HeadTrackingSources.NITHheadTracker, "NITHheadTracker")
             };
 
             foreach (var (source, sensorName) in allSources)
@@ -417,6 +419,7 @@ namespace HeadBower.Modules
             Console.WriteLine($"    Webcam ------> NITHwebcamWrapper");
             Console.WriteLine($"    Phone -------> NITHphoneWrapper");
             Console.WriteLine($"    Eye Tracker -> NITHeyetrackerWrapper");
+            Console.WriteLine($"    NITHheadTracker -> NITHheadTracker");
             Console.WriteLine($"\n  Parameter Selector Mode: BLACKLIST");
             Console.WriteLine($"  (All params pass through EXCEPT explicitly blocked ones)");
             Console.WriteLine($"\n  Blocked Parameters (HEAD MOTION ONLY):");
